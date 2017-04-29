@@ -9,17 +9,18 @@ const OrbitControls = require('three-orbitcontrols')
 const THREEx = require('threex.domevents')
 
 const father = {}
-const icosahedronArr = []
+const allObjects = []
 const center = {
   isOccupied: false
 }
+let currentSync = false
 
 // state.playlists.item[19]
 
 /* ========== DEFINE CAMERA  ========== */
 
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 1000)
-camera.position.z = 70
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 2000)
+camera.position.z = 80
 
 /* ========== DEFINE SCENE  ========== */
 
@@ -46,10 +47,14 @@ renderer.setSize(window.innerWidth, window.innerHeight)
 
 /* ========== DEFINE CONTROLLER  ========== */
 
-const controls = new OrbitControls(camera, renderer.domElement)
-controls.enableDamping = true
-controls.dampingFactor = 0.25
-controls.enableZoom = true
+function newControls() {
+  const controls = new OrbitControls(camera, renderer.domElement)
+  controls.enableDamping = true
+  controls.dampingFactor = 0.25
+  controls.enableZoom = true
+}
+
+newControls()
 
 /* ========== DEFINE CONTROLLER  ========== */
 
@@ -58,28 +63,34 @@ controls.enableZoom = true
 const domEvents = new THREEx.DomEvents(camera, renderer.domElement)
 const vector = new THREE.Vector3()
 
-export const init = (playlist, songList) => {
+export const init = (playlist, constant = 0) => {
+  const icosahedronArr = []
+  const songList = playlist.songs
+  const nucleus = [constant, constant, constant]
 
   const createIcosahedron = (currentSong) => {
     const geometry = new THREE.IcosahedronGeometry(2, 0)
     const material = new THREE.MeshBasicMaterial({wireframe: true})
     const icosahedron = new THREE.Mesh(geometry, material)
+    icosahedron.song = currentSong
     icosahedron.songId = currentSong.id
-    domEvents.addEventListener(icosahedron, 'click', centerSelect)
+    icosahedron.nucleus = nucleus
+    domEvents.addEventListener(icosahedron, 'click', (event) => centerSelect(event.target))
+    allObjects.push(icosahedron)
     return icosahedron
   }
 
   const sphereIcosahedron = (playlist) => {
     const randomizer = 0
     for (var i = 0; i < playlist.tracks.total; i++) {
-      const currentSong = songList.items[i]
+      const currentSong = songList[i]
       const phi = Math.acos(-1 + (2 * i)/playlist.tracks.total)
       const theta = Math.sqrt(playlist.tracks.total * Math.PI) * phi
       const icosahedron = createIcosahedron(currentSong)
       const position = [
-        (50 * Math.cos(theta) * Math.sin(phi))+randomizer,
-        (50 * Math.sin(theta) * Math.sin(phi))+randomizer,
-        (50* Math.cos(phi))+randomizer
+        (50 * Math.cos(theta) * Math.sin(phi))+constant,
+        (50 * Math.sin(theta) * Math.sin(phi))+constant,
+        (50* Math.cos(phi))+constant
       ]
       icosahedron.position.set(...position)
       icosahedron.startingPosition = position
@@ -92,10 +103,19 @@ export const init = (playlist, songList) => {
     addToScene(icosahedronArr)
     father[playlist.id] = {
       world: icosahedronArr,
-      nucleus: [randomizer, randomizer, randomizer]
+      nucleus: nucleus,
+      currentCenter: null
     }
   }
   sphereIcosahedron(playlist)
+}
+
+/* ========== DEFINE INITIALIZATION  ========== */
+
+export const initAll = playlists => {
+  playlists.forEach((playlist, i) => {
+    init(playlist, i*30)
+  })
 }
 
 // const addIcosahedronToScene = (num, z = 0) => {
@@ -121,7 +141,6 @@ function centerIt(instance) {
   center.instance = instance
   center.isOccupied = true
   instance.position.set(0, 0, 0)
-  camera.position.set(0, 0, 30)
   instance.isCentered = true
 }
 
@@ -129,7 +148,7 @@ function unCenterIt(instance) {
   center.instance.position.set(...center.instance.startingPosition)
   center.isOccupied = false
   instance.isCentered = false
-  camera.position.set(0, 0, 70)
+  // camera.position.set(0, 0, 70)
 }
 
 /* ========== DEFINE EVENT HANDLER ========== */
@@ -141,20 +160,24 @@ function unCenterIt(instance) {
 //   )
 // })
 
-function centerSelect({target}) {
-  if (target.isCentered) {
+function centerSelect(object) {
+  clearInterval(currentSync)
+  if (object.isCentered) {
     store.dispatch(removeCurrentSong())
-    unCenterIt(target)
+    unCenterIt(object)
   } else {
-    playbackSource(target.song)
-    centerIt(target)
+    playbackSource(object.song)
+    centerIt(object)
   }
-  target.material.wireframe = !target.isCentered
+  // target.material.wireframe = !target.isCentered
 }
 
 function playbackSource(song) {
   AUDIO.src = song.track.preview_url
   store.dispatch(setCurrentSong(song.track))
+  .then(() => {
+    syncObjectToSong(store.getState().player.currentSongFeatures)
+  })
 }
 
 function addToScene(arr) {
@@ -167,12 +190,32 @@ function switchNucleus(nucleus) {
 
 function syncCameraToSong() {}
 
-function syncObjectToSong() {}
+function syncObjectToSong(currentFeature) {
+  currentSync = setInterval(() => {
+    if (AUDIO.ended || !AUDIO.src) clearInterval(currentSync)
+    allObjects.forEach(shape => {
+      shape.rotation.x += 0.1
+      shape.rotation.y += 0.1
+    })
+  }, (currentFeature.track.tempo/60)*1000)
+}
+
+function shuffleFromCurrent(currentPlaylist) {
+  const randomObject = father[currentPlaylist.id].world[Math.floor(Math.random()*currentPlaylist.songs.length)]
+  console.log(randomObject)
+  randomObject.isCentered = false
+  centerSelect(randomObject)
+}
 
 export const sceneRender = function() {
   window.requestAnimationFrame(sceneRender)
   renderer.render(scene, camera)
-  icosahedronArr.forEach(shape => {
+  if (AUDIO.ended) {
+    const currentPlaylist = store.getState().userLibrary.currentPlaylist
+    console.log(currentPlaylist)
+    shuffleFromCurrent(currentPlaylist)
+  }
+  allObjects.forEach(shape => {
     shape.rotation.x += 0.005
     shape.rotation.y += 0.005
   })

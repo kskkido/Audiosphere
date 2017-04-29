@@ -75,12 +75,15 @@
     "redux-logger": "^2.7.0",
     "redux-thunk": "^2.1.0",
     "request": "^2.81.0",
+    "semantic-ui": "^2.2.10",
     "sequelize": "^3.24.6",
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
     "three": "^0.85.2",
     "three-orbitcontrols": "^1.2.0",
-    "threex.domevents": "^1.0.1"
+    "threex.domevents": "^1.0.1",
+    "tween": "^0.9.0",
+    "tween.js": "^16.6.0"
   },
   "devDependencies": {
     "babel": "^6.5.2",

@@ -9,6 +9,14 @@ export const createUserConfig = user => {
   })
 }
 
+export const findById = (arr, id) => {
+  for (let el of arr) {
+    if (el.id === id) {
+      return el
+    }
+  }
+}
+
 /*
   store.playlists = {
   href: https://api.spotify.com/v1/users/12183935322/playlists?offset=0&limit=20

@@ -1,21 +1,20 @@
 import React from 'react'
 import {connect} from 'react-redux'
-import { fetchPlaylists, fetchPlaylistSongs } from '../reducers/playlists'
+import {findById} from '../reducers/utils'
+import { fetchPlaylists, fetchPlaylistSongs, setCurrentPlaylist } from '../reducers/playlists'
 
-const UserControls = ({ fetchPlaylists, fetchPlaylistSongs, playlists, songArr, user }) => {
-
-  function getPlaylist() {
-    fetchPlaylists(user)
+const UserControls = ({ playlists, setCurrentPlaylist, user }) => {
+  function renderDropdown() {
+    return playlists.map((playlist, i) => <option key={`${i}`} value={playlist.id}>{playlist.name}</option>)
   }
 
-  function getSongs() {
-    fetchPlaylistSongs(user, playlists)
+  function selectOnChange(event) {
+    setCurrentPlaylist(playlists, event.target.value)
   }
 
   return (
     <div>
-      <button onClick={getPlaylist}>GET PLAYLIST</button>
-      {playlists.items ? <button onClick={getSongs}>GET SONGS</button> : null}
+      <select onChange={selectOnChange}>{playlists.length && renderDropdown()}</select>
     </div>
   )
 }
@@ -27,8 +26,9 @@ const mapStateToProps = (state) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  fetchPlaylists: user => dispatch(fetchPlaylists(user)),
-  fetchPlaylistSongs: (user, playlists) => dispatch(fetchPlaylistSongs(user, playlists))
+  setCurrentPlaylist: (playlists, playlistId) => {
+    dispatch(setCurrentPlaylist(findById(playlists, playlistId)))
+  }
 })
 
 export default connect(

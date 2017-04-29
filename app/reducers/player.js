@@ -1,17 +1,22 @@
 
 import {AUDIO} from '../main'
+import {testAxiosInstance} from './auth'
+
+const featureCache = []
 
 const SET_CURRENT_SONG = 'SET CURRENT SONG'
 const START_PLAYING = 'START PLAYING'
 const STOP_PLAYING = 'STOP PLAYING'
-const SET_LIST = 'SET LIST'
+const SET_FEATURES = 'SET FEATURES'
 const REMOVE_CURRENT_SONG = ' REMOVE CURRENT SONG'
 
 const playSong = song => ({type: SET_CURRENT_SONG, song})
-export const stopSong = () => ({type: REMOVE_CURRENT_SONG})
+const stopSong = () => ({type: REMOVE_CURRENT_SONG})
+const setFeatures = features => ({type: SET_FEATURES, features})
 
 export const initialPlayerState = {
   currentSong: {},
+  currentSongFeatures: {},
   currentSongList: [],
   isPlaying: false,
   progress: 0
@@ -31,8 +36,8 @@ export default (state = initialPlayerState, action) => {
   case REMOVE_CURRENT_SONG:
     return Object.assign({}, state, {currentSong: {}})
 
-  case SET_LIST:
-    return Object.assign({}, state, {isPlaying: true})
+  case SET_FEATURES:
+    return Object.assign({}, state, {currentSongFeatures: action.features})
 
   default:
     return state
@@ -42,6 +47,11 @@ export default (state = initialPlayerState, action) => {
 export const setCurrentSong = (song) => dispatch => {
   AUDIO.play()
   dispatch(playSong(song))
+  return testAxiosInstance(`https://api.spotify.com/v1/audio-analysis/${song.id}`)
+    .then((res) => {
+      return dispatch(setFeatures(res.data))
+    })
+    .catch(err => console.error('Failed to get song features', err))
 }
 
 export const removeCurrentSong = () => dispatch => {
