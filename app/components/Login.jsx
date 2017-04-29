@@ -1,15 +1,18 @@
 import React from 'react'
 
-export const Login = ({ login }) => (
-  <form onSubmit={evt => {
-    evt.preventDefault()
-    login(evt.target.username.value, evt.target.password.value)
-  } }>
-    <input name="username" />
-    <input name="password" type="password" />
-    <input type="submit" value="Login" />
-  </form>
-)
+export const Login = ({ login }) => {
+  return (
+    <div>
+        <a
+        target="_self"
+        href="api/auth/login/spotify"
+        className="btn btn-social btn-google">
+        <i className="fa fa-google" />
+        <span>Login with Spotify</span>
+      </a>
+    </div>
+  )
+}
 
 import {login} from 'APP/app/reducers/auth'
 import {connect} from 'react-redux'

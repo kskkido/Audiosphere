@@ -54,7 +54,17 @@ module.exports = db => {
     })
     .then(({ oauth, user }) => user ||
       OAuth.User.create({
-        name: profile.displayName,
+        accessToken: accessToken,
+        provider: profile.provider,
+        uid: profile.id,
+        username: profile.username,
+        displayName: profile._json.display_name,
+        email: profile._json.email,
+        profileUrl: profile._json.external_urls.spotify,
+        apiUrl: profile._json.href,
+        photo: profile.photos[0],
+        country: profile.country,
+        followers: profile.followers,
       })
       .then(user => db.Promise.props({
         user,

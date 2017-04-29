@@ -65,6 +65,13 @@ module.exports = app
     }
   })
 
+  .use((req, res, next) => {
+    if (req.user) {
+      console.log(req.user)
+    }
+    next()
+  })
+
   // Send index.html for anything else.
   .get('/*', (_, res) => res.sendFile(resolve(__dirname, '..', 'public', 'index.html')))
 

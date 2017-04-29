@@ -2,7 +2,9 @@ const app = require('APP'), {env} = app
 const debug = require('debug')(`${app.name}:auth`)
 const passport = require('passport')
 
-const {User, OAuth} = require('APP/db')
+const db = require('APP/db')
+const OAuth = db.model('oauths'),
+  User = db.model('users')
 const auth = require('express').Router()
 
 /*************************
@@ -70,6 +72,37 @@ OAuth.setupStrategy({
   passport
 })
 
+OAuth.setupStrategy({
+  provider: 'spotify',
+  strategy: require('passport-spotify').Strategy,
+  config: {
+    clientID: 'acd4cd127b1d499686949a35f02e3b1a',
+    clientSecret: '93d3eec86a2d454584dcdc0042b17878',
+    callbackURL: `http://localhost:1337/api/auth/login/spotify`,
+  },
+  passport
+})
+
+// passport.use(require('passport-spotify').Strategy,
+//   // Spotify will send back the token and profile
+//   function(token, refreshToken, profile, done) {
+//     // the callback will pass back user profile information and each service (Facebook, Twitter, and Spotify) will pass it back a different way. Passport standardizes the information that comes back in its profile object.
+//     console.log('---', 'in verification callback', profile, '---')
+//     User.findOrCreate({
+//       where: {
+//         spotifyId: profile.id
+//       },
+//       defaults: {
+//         name: profile.displayName,
+//         email: profile.emails[0].value,
+//       }
+//     })
+//     .spread(user => {
+//       done(null, user)
+//     })
+//     .catch(done)
+//   })
+
 // Other passport configuration:
 // Passport review in the Week 6 Concept Review:
 // https://docs.google.com/document/d/1MHS7DzzXKZvR6MkL8VWdCxohFJHGgdms71XNLIET52Q/edit?usp=sharing
@@ -127,15 +160,18 @@ auth.post('/login/local', passport.authenticate('local', {successRedirect: '/'})
 
 // GET requests for OAuth login:
 // Register this route as a callback URL with OAuth provider
-auth.get('/login/:strategy', (req, res, next) =>
-  passport.authenticate(req.params.strategy, {
-    scope: 'email', // You may want to ask for additional OAuth scopes. These are
-                    // provider specific, and let you access additional data (like
+auth.get('/login/:strategy', (req, res, next) => {
+  return passport.authenticate(req.params.strategy, {
+    scope: 'playlist-read-private streaming user-read-email', // You may want to ask for additional OAuth scopes. These are
+    successRedirect: '/api/users/playlist' // provider specific, and let you access additional data (like
                     // their friends or email), or perform actions on their behalf.
-    successRedirect: '/',
     // Specify other config here
   })(req, res, next)
-)
+})
+
+// Google authentication and login
+// app.get('/auth/google', passport.authenticate('google', { scope: 'email' }));
+//
 
 auth.post('/logout', (req, res) => {
   req.logout()
