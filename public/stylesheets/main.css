@@ -1,9 +1,31 @@
 body {
   margin: 0;
+  padding: 0;
   background-color: grey;
 }
 
 #main {
-  position: absolute;
-  z-index: 1
+  z-index: 1;
+}
+
+#top-nav {
+	position:relative;
+    background: transparent;
+    background-color: rgba(0, 0, 0, 0.6)
+}
+
+.side-nav {
+  z-index: 2;
+}
+
+.song-list {
+  margin: 10px;
+}
+
+.non-across {
+	position: absolute;
+}
+
+.collapsible-header {
+  font-size: 23px !important;
 }

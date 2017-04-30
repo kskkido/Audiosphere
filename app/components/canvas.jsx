@@ -1,26 +1,31 @@
 import React from 'react'
 import {connect} from 'react-redux'
-import { fetchPlaylists, fetchPlaylistSongs } from '../reducers/playlists'
-import { init, initAll, sceneRender } from '../canvasMaterial/songShape'
+import { fetchPlaylists, fetchPlaylistSongs, hasRendered, render } from '../reducers/playlists'
+import { init, initAll, sceneRender, switchWorld } from '../canvasMaterial/songShape'
 
-const CanvasControls = ({ currentPlaylist, playlists, user }) => {
-  if (playlists.length > 19) {
-    initAll(playlists)
+const CanvasControls = ({ currentPlaylist, playlists, render, rendered, user }) => {
+  if (playlists.length > 19 && !render) {
+    initAll(playlists, currentPlaylist)
+    rendered()
     sceneRender()
   }
-
-  return (
-    <div>
-    </div>
-  )
+  // if (currentPlaylist.id) {
+  //   console.log('switched?')
+  //   switchWorld(currentPlaylist)
+  // }
+  return null
 }
 
 const mapStateToProps = (state) => ({
   user: state.auth,
+  currentPlaylist: state.userLibrary.currentPlaylist,
   playlists: state.userLibrary.playlists,
+  render: state.userLibrary.render
 })
 
-const mapDispatchToProps = null
+const mapDispatchToProps = dispatch => ({
+  rendered: () => dispatch(hasRendered())
+})
 
 export default connect(
   mapStateToProps,

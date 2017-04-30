@@ -21,6 +21,7 @@ let currentSync = false
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 2000)
 camera.position.z = 80
+camera.position.x = 10
 
 /* ========== DEFINE SCENE  ========== */
 
@@ -82,13 +83,13 @@ export const init = (playlist, constant = 0) => {
 
   const sphereIcosahedron = (playlist) => {
     const randomizer = 0
-    for (var i = 0; i < playlist.tracks.total; i++) {
+    for (var i = 0; i < songList.length; i++) {
       const currentSong = songList[i]
       const phi = Math.acos(-1 + (2 * i)/playlist.tracks.total)
       const theta = Math.sqrt(playlist.tracks.total * Math.PI) * phi
       const icosahedron = createIcosahedron(currentSong)
       const position = [
-        (50 * Math.cos(theta) * Math.sin(phi))+constant,
+        (50 * Math.cos(theta) * Math.sin(phi))+10+constant,
         (50 * Math.sin(theta) * Math.sin(phi))+constant,
         (50* Math.cos(phi))+constant
       ]
@@ -112,9 +113,9 @@ export const init = (playlist, constant = 0) => {
 
 /* ========== DEFINE INITIALIZATION  ========== */
 
-export const initAll = playlists => {
+export const initAll = (playlists, currentPlaylist) => {
   playlists.forEach((playlist, i) => {
-    init(playlist, i*30)
+    init(playlist, i*60)
   })
 }
 
@@ -140,7 +141,7 @@ function centerIt(instance) {
   }
   center.instance = instance
   center.isOccupied = true
-  instance.position.set(0, 0, 0)
+  instance.position.set(...instance.nucleus)
   instance.isCentered = true
 }
 
@@ -161,6 +162,7 @@ function unCenterIt(instance) {
 // })
 
 function centerSelect(object) {
+  // switchNucleus(object.nucleus)
   clearInterval(currentSync)
   if (object.isCentered) {
     store.dispatch(removeCurrentSong())
@@ -185,7 +187,7 @@ function addToScene(arr) {
 }
 
 function switchNucleus(nucleus) {
-  camera.position.set(nucleus[0], nucleus[1], nucleus[2]+70)
+  camera.position.set(nucleus[0], nucleus[1], nucleus[2]+130)
 }
 
 function syncCameraToSong() {}
@@ -202,9 +204,13 @@ function syncObjectToSong(currentFeature) {
 
 function shuffleFromCurrent(currentPlaylist) {
   const randomObject = father[currentPlaylist.id].world[Math.floor(Math.random()*currentPlaylist.songs.length)]
-  console.log(randomObject)
-  randomObject.isCentered = false
+  console.log(randomObject.song.track.preview_url)
   centerSelect(randomObject)
+}
+
+export const switchWorld = (currentPlaylist) => {
+  const nucleus = father[currentPlaylist.id].nucleus
+  switchNucleus(nucleus)
 }
 
 export const sceneRender = function() {

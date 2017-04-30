@@ -8,6 +8,7 @@ const FETCH = 'FETCH PLAYLIST'
 const FETCH_SONGS = 'FETCH SONGS'
 const SET_CURRENT_PLAYLIST = 'SET CURRENT PLAYLIST'
 const ADD_SONGS = 'ADD SONGS'
+const RENDERED = 'RENDERED'
 
 /* ============ DEFINE ACTION CREATORS ============ */
 
@@ -15,10 +16,12 @@ export const fetched = playlists => ({ type: FETCH, playlists })
 export const fetchedSongs = songArr => ({type: FETCH_SONGS, songArr})
 export const setCurrentPlaylist = playlist => ({type: SET_CURRENT_PLAYLIST, playlist})
 export const addSongs = songs => ({type: ADD_SONGS, songs})
+export const hasRendered = () => ({type: RENDERED})
 
 /* ============ DEFINE REDUCER ============ */
 
 const initialState = {
+  render: false,
   currentPlaylist: {},
   playlists: [],
   allSongs: []
@@ -35,6 +38,9 @@ export default (state=initialState, action) => {
   case ADD_SONGS:
     const filtered = action.songs.filter(song => state.allSongs.indexOf(song) > -1)
     return Object.assign({}, state, {allSongs: [state.allSongs, ...filtered]})
+
+  case RENDERED:
+    return Object.assign({}, state, {render: true})
   }
 
   return state
@@ -69,6 +75,7 @@ export const fetchInitialData = user => dispatch => {
       dispatch(setCurrentPlaylist(playlists[0]))
     })
   })
+  .catch(err => console.error('Failed to initialize ', err))
 }
 
 // fetch song everytime a dom object is clicked

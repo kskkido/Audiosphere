@@ -1,19 +1,60 @@
 import React from 'react'
-import { fetchPlaylists, fetchPlaylistSongs } from '../reducers/playlists'
+import { fetchPlaylists, fetchPlaylistSongs, setCurrentPlaylist } from '../reducers/playlists'
 import { init, sceneRender } from '../canvasMaterial/songShape'
+import UserControls from './userControls'
+import {findById} from '../reducers/utils'
 
-const Sidebar = ({ currentPlaylist, playlists, user }) => {
-  function renderPlaylistInfo() {
-    return currentPlaylist.songs.map(songInfo => {
+const Sidebar = ({ currentPlaylist, playlists, setCurrentPlaylist, user }) => {
+
+  // function renderPlaylistSongs() {
+  //   return currentPlaylist.songs.map(songInfo => <li key={`${songInfo.track.id}`} id={`${songInfo.track.id}`}>{`${songInfo.track.name} - ${songInfo.track.artists[0].name}`}</li>)
+  // }
+
+  function renderPlaylists() {
+    return playlists.map(playlist => {
       return (
-        <li key={`${songInfo.track.id}`} id={`${songInfo.track.id}`}>{`${songInfo.track.name} - ${songInfo.track.artists[0].name}`}</li>
+        <li key={`${playlist.id}`}>
+          <a onClick={() => selectOnClick(playlist.id)} className="collapsible-header waves-effect" value={`${playlist.id}`}>
+            {playlist.name}
+          </a>
+          <div className="collapsible-body transparent">
+            <ul className="song-list">
+              {renderPlaylistSongs(playlist.songs)}
+            </ul>
+          </div>
+        </li>
       )
     })
   }
 
+  function renderPlaylistSongs(songList) {
+    return songList.map(song => {
+      return (
+        <li key={`${song.track.id}`} id={`${song.track.id}`}>
+            {`${song.track.name} - ${song.track.artists[0].name}`}
+        </li>
+      )
+    })
+  }
+
+  function selectOnClick(event) {
+    setCurrentPlaylist(playlists, event)
+  }
+
   return (
+
     <div>
-      { currentPlaylist.id && <ul className='LOL'><li>{currentPlaylist.name}</li>{renderPlaylistInfo()}</ul> }
+      <ul id="slide-out" className="side-nav fixed collapsible transparent">
+        <ul className="collapsible" data-collapsible="accordion">
+          <li>
+            <a className="collapsible-header waves-effect">
+              All Songs
+            </a>
+          </li>
+          <li><div className="divider"></div></li>
+          { playlists.length > 0 && renderPlaylists() }
+        </ul>
+      </ul>
     </div>
   )
 }
@@ -24,11 +65,14 @@ import {connect} from 'react-redux'
 const mapStateToProps = (state) => ({
   user: state.auth,
   playlists: state.userLibrary.playlists,
-  songArr: state.userLibrary.songArr,
   currentPlaylist: state.userLibrary.currentPlaylist,
 })
 
-const mapDispatchToProps = null
+const mapDispatchToProps = dispatch => ({
+  setCurrentPlaylist: (playlists, playlistId) => {
+    dispatch(setCurrentPlaylist(findById(playlists, playlistId)))
+  }
+})
 
 export default connect(
   mapStateToProps,
