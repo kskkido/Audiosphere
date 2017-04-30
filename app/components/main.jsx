@@ -9,7 +9,7 @@ const Main = ({children, user}) => {
   return (
     <div id='home'>
       {/* <h1>YO</h1> */}
-      {/*<Navbar />*/}
+        <Navbar />
         {user 
           ?
           <div className="non-across">

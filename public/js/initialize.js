@@ -1,8 +1,8 @@
 $(function () {
-	$(".button-collapse").sideNav()
 	setTimeout(() => {
 		$('.collapsible').collapsible()
-	}, 0)
+		$(".button-collapse").sideNav({draggable: true})
+	}, 1000)
 	$(".dropdown-button").dropdown();
 })
 

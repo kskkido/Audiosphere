@@ -579,7 +579,6 @@ if (jQuery) {
         return;
       }
 
-
       removeEventHandlers();
 
 

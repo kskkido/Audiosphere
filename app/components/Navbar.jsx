@@ -7,11 +7,12 @@ import {login} from 'APP/app/reducers/auth'
 const Navbar = ({ currentPlaylist, playlists, user }) => {
 
   return (
-  <nav className="transparent">
+  <nav className="transparent" id="top-nav">
     {renderLoginDropdown()}
     <div className="wrapper nav-wrapper">
-      <a href="#" data-activates="slide-out" className="button-collapse brand-logo left"><i className="material-icons">menu</i></a>
-      <ul id="nav-mobile" className="right hide-on-med-and-down ">
+      <a href="#" data-activates="slide-out" className="button-collapse left"><i className="material-icons">menu</i></a>
+      <ul id="nav-mobile" className="right">
+      <li><a className="dropdown-button" data-beloworigin="true" href="#!" data-activates="dropdown1">Toggle Camera<i className="material-icons right">arrow_drop_down</i></a></li>
          <li><a className="dropdown-button" data-beloworigin="true" href="#!" data-activates="dropdown1">Account<i className="material-icons right">arrow_drop_down</i></a></li>
         <li><a>Spotify</a></li>
       </ul>

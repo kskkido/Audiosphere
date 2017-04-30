@@ -9,10 +9,9 @@ const CanvasControls = ({ currentPlaylist, playlists, render, rendered, user }) 
     rendered()
     sceneRender()
   }
-  // if (currentPlaylist.id) {
-  //   console.log('switched?')
-  //   switchWorld(currentPlaylist)
-  // }
+  if (currentPlaylist.id) {
+    switchWorld(currentPlaylist)
+  }
   return null
 }
 

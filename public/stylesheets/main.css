@@ -9,21 +9,19 @@ body {
 }
 
 #top-nav {
-	position:relative;
-    background: transparent;
-    background-color: rgba(0, 0, 0, 0.6)
-}
-
-.side-nav {
-  z-index: 2;
-}
-
-.song-list {
-  margin: 10px;
+	position:absolute;
 }
 
 .non-across {
 	position: absolute;
+}
+
+.canvas {
+  width: 100%;
+}
+
+#sidenav-overlay{
+  background: transparent !important;
 }
 
 .collapsible-header {

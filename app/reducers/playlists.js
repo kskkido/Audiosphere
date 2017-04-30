@@ -14,7 +14,7 @@ const RENDERED = 'RENDERED'
 
 export const fetched = playlists => ({ type: FETCH, playlists })
 export const fetchedSongs = songArr => ({type: FETCH_SONGS, songArr})
-export const setCurrentPlaylist = playlist => ({type: SET_CURRENT_PLAYLIST, playlist})
+export const setCurrentPlaylist = playlistId => ({type: SET_CURRENT_PLAYLIST, playlistId})
 export const addSongs = songs => ({type: ADD_SONGS, songs})
 export const hasRendered = () => ({type: RENDERED})
 
@@ -33,7 +33,8 @@ export default (state=initialState, action) => {
     return Object.assign({}, state, {playlists: action.playlists})
 
   case SET_CURRENT_PLAYLIST:
-    return Object.assign({}, state, {currentPlaylist: action.playlist})
+
+    return Object.assign({}, state, {currentPlaylist: findById(state.playlists, action.playlistId)})
 
   case ADD_SONGS:
     const filtered = action.songs.filter(song => state.allSongs.indexOf(song) > -1)
@@ -62,7 +63,7 @@ export default (state=initialState, action) => {
 // }
 
 export const fetchInitialData = user => dispatch => {
-  testAxiosInstance.get('https://api.spotify.com/v1/me/playlists')
+  testAxiosInstance.get('https://api.spotify.com/v1/me/playlists/?limit=30')
   .then(res => res.data.items)
   .then(playlists => {
     axios.all(playlists.map((playlist, i, arr) => {
@@ -72,7 +73,7 @@ export const fetchInitialData = user => dispatch => {
     .then((res) => {
       dispatch(addSongs(res.reduce((total, current) => [...total, ...current], [])))
       dispatch(fetched(playlists))
-      dispatch(setCurrentPlaylist(playlists[0]))
+      dispatch(setCurrentPlaylist(playlists[0].id))
     })
   })
   .catch(err => console.error('Failed to initialize ', err))
