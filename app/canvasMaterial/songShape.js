@@ -28,7 +28,7 @@ let isAll = false
 
 /* ========== DEFINE CAMERA  ========== */
 
-export const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 1000)
+export const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 2000)
 camera.position.z = 100
 camera.position.x = 10
 
@@ -80,7 +80,7 @@ export const init = (playlist, constant) => {
   }
 
   const createIcosahedron = (currentSong) => {
-    const geometry = new THREE.IcosahedronGeometry(3, 1)
+    const geometry = new THREE.IcosahedronGeometry(3, 0)
     const material = new THREE.MeshBasicMaterial({wireframe: true})
     const icosahedron = new THREE.Mesh(geometry, material)
     icosahedron.song = currentSong
@@ -126,9 +126,9 @@ export const initAll = (playlists, currentPlaylist, allSongs) => {
     const phi = Math.acos(-1 + (2 * i)/playlists.length)
     const theta = Math.sqrt(playlists.length * Math.PI) * phi
     const nucleus = [
-      (25 * playlists.length * Math.cos(theta) * Math.sin(phi))+10,
-      (25 * playlists.length * Math.sin(theta) * Math.sin(phi)),
-      (25 * playlists.length * Math.cos(phi))
+      (20 * playlists.length * Math.cos(theta) * Math.sin(phi))+10,
+      (20 * playlists.length * Math.sin(theta) * Math.sin(phi)),
+      (20 * playlists.length * Math.cos(phi))
     ]
     init(playlists[i], nucleus)
   }
@@ -152,7 +152,7 @@ function uncenterAnimation (object) {
     y: object.startingPosition[1],
     z: object.startingPosition[2]
   }, 1000)
-  .easing(TWEEN.Easing.Circular.Out)
+  .easing(TWEEN.Easing.Sinusoidal.Out)
   .start()
 }
 
@@ -161,6 +161,23 @@ function beatRotation (object, tempo) {
     x: object.rotation.x + .7,
     y: object.rotation.y + .7
   }, tempo)
+  .start()
+}
+
+function pulseObject (object) {
+  const originalSize = Object.assign({}, object.scale)
+  const targetSize = {
+    x: originalSize.x + .07,
+    y: originalSize.y + .07,
+    z: originalSize.z + .07,
+  }
+  const upPulse =new TWEEN.Tween(object.scale)
+  .to(targetSize, 200)
+  .easing(TWEEN.Easing.Sinusoidal.Out)
+  .chain(
+    new TWEEN.Tween(object.scale)
+    .to(originalSize, 100)
+  )
   .start()
 }
 
@@ -287,8 +304,9 @@ function syncObjectToSong(currentFeature) {
   currentSync = setInterval(() => {
     if (AUDIO.ended || !center.isOccupied) clearInterval(currentSync)
     songIds.forEach(songId => {
-      let shape = currentWorld.sphere.cells[songId]
-      beatRotation(shape, tempo/6)
+      const shape = currentWorld.sphere.cells[songId]
+      pulseObject(shape)
+      // beatRotation(shape, tempo/6)
     })
   }, tempo, songIds)
 }

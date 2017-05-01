@@ -58,3 +58,25 @@ body {
 .inital-overlay a {
   color: white;
 }
+
+.song-snippet {
+	background-color: rgba(0, 0, 0, 0.02);
+  position: absolute;
+  right: 40px;
+  top: 80px;
+  width: 200px;
+  height: 50px;
+  padding-top: 11px;
+	text-align: right;
+}
+
+.snippet-text{
+  font-size: 17px;
+  margin-right: 3px ;
+  display: inline-block;
+  width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}

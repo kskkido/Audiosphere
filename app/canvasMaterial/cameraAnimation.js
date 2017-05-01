@@ -29,11 +29,16 @@ const objetTween = new TWEEN(object.position).to({
 
 function pulseObject (object) {
 	const originalSize = object.scale
-	new TWEEN.tween(object.scale).to({
+	const targetSize = {
 		x: originalSize.x + 1,
 		y: originalSize.y + 1,
 		z: originalSize.z + 1,
-	}).
+	}
+	const upPulse =new TWEEN.tween(object.scale)
+	.to(targetSize, 150)
 	.easing(Tween.Easing.Elastic.Out)
-	.chain
+	const downPulse =new TWEEN.tween(targetSize)
+	.to(originalSize, 75)
+
+	upPulse.chain(downPulse)
 }

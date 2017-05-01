@@ -85,7 +85,7 @@ export default (state=initialState, action) => {
 
 export const fetchInitialData = user => dispatch => {
   dispatch(restartRender())
-  testAxiosInstance.get('https://api.spotify.com/v1/me/playlists/?limit=30')
+  testAxiosInstance.get('https://api.spotify.com/v1/me/playlists/?limit=40')
   .then(res => res.data.items)
   .then(playlists => {
     axios.all(playlists.map((playlist, i, arr) => {
@@ -103,7 +103,7 @@ export const fetchInitialData = user => dispatch => {
 
 export const fetchFeaturedPlaylists = user => dispatch => {
   dispatch(changePlaylist())
-  testAxiosInstance.get('https://api.spotify.com/v1/browse/featured-playlists/?limit=10')
+  testAxiosInstance.get('https://api.spotify.com/v1/browse/featured-playlists/?limit=20')
   .then(res => res.data.playlists.items)
   .then(playlists => {
     axios.all(playlists.map((playlist, i, arr) => {
