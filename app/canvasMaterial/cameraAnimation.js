@@ -25,4 +25,15 @@ const objetTween = new TWEEN(object.position).to({
 	x: object.nucleus[0],
 	y: object.nucleus[1],
 	z: object.nucleus[2]
-}).easing(TWEEN.Easing.Sinusoidal.EaseInOut)
+}).easing(TWEEN.Easing.Sinusoidal.E)
+
+function pulseObject (object) {
+	const originalSize = object.scale
+	new TWEEN.tween(object.scale).to({
+		x: originalSize.x + 1,
+		y: originalSize.y + 1,
+		z: originalSize.z + 1,
+	}).
+	.easing(Tween.Easing.Elastic.Out)
+	.chain
+}

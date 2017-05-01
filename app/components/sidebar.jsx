@@ -1,10 +1,10 @@
 import React from 'react'
-import { fetchPlaylists, fetchPlaylistSongs, neutralView, setCurrentPlaylist } from '../reducers/playlists'
-import { centerAll, findBySongId, init, sceneRender } from '../canvasMaterial/songShape'
+import { fetchPlaylists, fetchPlaylistSongs, neutralView, setCurrentPlaylist, setToAll } from '../reducers/playlists'
+import { findFromAll, findBySongId, init, sceneRender, switchToAll } from '../canvasMaterial/songShape'
 import UserControls from './userControls'
 import {findById} from '../reducers/utils'
 
-const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, user }) => {
+const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, setToAll, user }) => {
 
   // function renderPlaylistSongs() {
   //   return currentPlaylist.songs.map(songInfo => <li key={`${songInfo.track.id}`} id={`${songInfo.track.id}`}>{`${songInfo.track.name} - ${songInfo.track.artists[0].name}`}</li>)
@@ -40,7 +40,7 @@ const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, use
   function renderAllSongs() {
     return allSongs.map(song => {
       return (
-        <li onClick={() => selectSong(song.track.id)} key={`${song.track.id}allSongs`} value={`${song.track.id}`}>
+        <li onClick={() => selectFromAll(song.track.id)} key={`${song.track.id}allSongs`} value={`${song.track.id}`}>
           <a className="waves-effect">{`${song.track.name} - ${song.track.artists[0].name}`}</a>
         </li>
       )
@@ -48,12 +48,16 @@ const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, use
   }
 
   function selectPlaylist(playlistId, event) {
-    console.log(event.target.classList.contains('active'))
+    // console.log(event.target.classList.contains('active'))
     setCurrentPlaylist(playlistId)
   }
 
-  function selectSong(songId, all) {
-    findBySongId(songId, currentPlaylist, all)
+  function selectSong(songId) {
+    findBySongId(songId, currentPlaylist)
+  }
+
+  function selectFromAll(songId) {
+    findFromAll(songId)
   }
 
   return (
@@ -62,7 +66,7 @@ const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, use
       <ul id="slide-out" className="side-nav fixed transparent">
         <ul className="collapsible" data-collapsible="accordion">
           <li>
-            <a onClick={centerAll} className="collapsible-header waves-effect">
+            <a onClick={() => {setToAll(); switchToAll()}} className="collapsible-header waves-effect">
               All Songs
             </a>
             <div className="collapsible-body transparent">
@@ -94,7 +98,8 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  setCurrentPlaylist: playlistId => dispatch(setCurrentPlaylist(playlistId))
+  setCurrentPlaylist: playlistId => dispatch(setCurrentPlaylist(playlistId)),
+  setToAll: () => dispatch(setToAll())
 })
 
 

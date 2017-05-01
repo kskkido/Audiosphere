@@ -9,6 +9,7 @@ const Main = ({children, user}) => {
   return (
     <div id='home'>
       {/* <h1>YO</h1> */}
+        {/*!user && <Login />*/}
         <Navbar />
         <div className="non-across">
   		    <SideBar />

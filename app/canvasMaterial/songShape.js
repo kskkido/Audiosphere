@@ -12,6 +12,7 @@ const TWEEN = require('tween.js')
 
 let father = {}
 let allObjects = []
+const songCatalog = {}
 const center = {
   isOccupied: false
 }
@@ -34,7 +35,7 @@ camera.position.x = 10
 /* ========== DEFINE SCENE  ========== */
 
 const scene = new THREE.Scene()
-scene.fog = new THREE.FogExp2(0xb6b6b6, 0.0006)
+scene.fog = new THREE.FogExp2(0xb6b6b6, 0.0001)
 
 /* ========== DEFINE LIGHT  ========== */
 
@@ -51,7 +52,7 @@ scene.fog = new THREE.FogExp2(0xb6b6b6, 0.0006)
 /* ========== DEFINE RENDERER  ========== */
 
 export const renderer = new THREE.WebGLRenderer({ antialias: false })
-renderer.setClearColor(scene.fog.color, .7)
+renderer.setClearColor(scene.fog.color, .5)
 renderer.setSize(window.innerWidth, window.innerHeight)
 
 /* ========== DEFINE CONTROLLER  ========== */
@@ -79,7 +80,7 @@ export const init = (playlist, constant) => {
   }
 
   const createIcosahedron = (currentSong) => {
-    const geometry = new THREE.IcosahedronGeometry(2, 0)
+    const geometry = new THREE.IcosahedronGeometry(3, 1)
     const material = new THREE.MeshBasicMaterial({wireframe: true})
     const icosahedron = new THREE.Mesh(geometry, material)
     icosahedron.song = currentSong
@@ -87,6 +88,7 @@ export const init = (playlist, constant) => {
     icosahedron.playlistId = playlist.id
     domEvents.addEventListener(icosahedron, 'click', (event) => centerSelect(event.target))
     allObjects.push(icosahedron)
+    songCatalog[currentSong.id] = icosahedron
     return icosahedron
   }
 
@@ -98,9 +100,9 @@ export const init = (playlist, constant) => {
       const theta = Math.sqrt(playlist.tracks.total * Math.PI) * phi
       const icosahedron = createIcosahedron(currentSong)
       const position = [
-        (50 * Math.cos(theta) * Math.sin(phi))+nucleus[0],
-        (50 * Math.sin(theta) * Math.sin(phi))+nucleus[1],
-        (50* Math.cos(phi))+nucleus[2]
+        (65 * Math.cos(theta) * Math.sin(phi))+nucleus[0],
+        (65 * Math.sin(theta) * Math.sin(phi))+nucleus[1],
+        (65 * Math.cos(phi))+nucleus[2]
       ]
       icosahedron.position.set(...position)
       icosahedron.startingPosition = position
@@ -124,9 +126,9 @@ export const initAll = (playlists, currentPlaylist, allSongs) => {
     const phi = Math.acos(-1 + (2 * i)/playlists.length)
     const theta = Math.sqrt(playlists.length * Math.PI) * phi
     const nucleus = [
-      (20 * playlists.length * Math.cos(theta) * Math.sin(phi))+10,
-      (20 * playlists.length * Math.sin(theta) * Math.sin(phi)),
-      (20 * playlists.length * Math.cos(phi))
+      (25 * playlists.length * Math.cos(theta) * Math.sin(phi))+10,
+      (25 * playlists.length * Math.sin(theta) * Math.sin(phi)),
+      (25 * playlists.length * Math.cos(phi))
     ]
     init(playlists[i], nucleus)
   }
@@ -149,7 +151,7 @@ function uncenterAnimation (object) {
     x: object.startingPosition[0],
     y: object.startingPosition[1],
     z: object.startingPosition[2]
-  }, 500)
+  }, 1000)
   .easing(TWEEN.Easing.Circular.Out)
   .start()
 }
@@ -164,30 +166,29 @@ function beatRotation (object, tempo) {
 
 export function centerAll () {
   isAll = true
-  switchToAll()
   allObjects.forEach((object, i) => {
-    console.log('OBJECT', i)
     object.originalStartingPosition = object.startingPosition
     object.nucleus = [0, 0, 0]
     const phi = Math.acos(-1 + (2 * i)/allObjects.length)
     const theta = Math.sqrt(allObjects.length * Math.PI) * phi
     let position = [
-      (50 * Math.cos(theta) * Math.sin(phi)),
-      (50 * Math.sin(theta) * Math.sin(phi)),
-      (50* Math.cos(phi)),
+      (120 * Math.cos(theta) * Math.sin(phi)),
+      (120 * Math.sin(theta) * Math.sin(phi)),
+      (120 * Math.cos(phi)),
     ]
     new TWEEN.Tween(object.position).to({
       x: position[0],
       y: position[1],
       z: position[2],
     }, 1500)
-    .easing(TWEEN.Easing.Circular.Out)
+    .easing(TWEEN.Easing.Sinusoidal.InOut)
     .start()
     object.startingPosition = position
   })
 }
 
 function unCenterAll () {
+  isAll = false
   allObjects.forEach(object => {
     object.nucleus = father[object.playlistId].nucleus
     object.startingPosition = object.originalStartingPosition
@@ -251,8 +252,6 @@ function centerSelect(object) {
   // target.material.wireframe = !target.isCentered
 }
 
-
-
 function playbackSource(song) {
   console.log(song.preview_url)
   AUDIO.src = song.preview_url
@@ -266,10 +265,14 @@ function addToScene(arr) {
   arr.forEach(shape => scene.add(shape))
 }
 
-export const findBySongId = (songId, all = false) => {
+export const findBySongId = (songId) => {
   const currentObj = currentWorld.sphere.cells[songId]
-  console.log(currentWorld)
   if(currentObj) centerSelect(currentObj)
+}
+
+export const findFromAll = (songId) => {
+  const currentObj = songCatalog[songId]
+  centerSelect(currentObj)
 }
 
 function switchNucleus(nucleus) {
@@ -285,7 +288,7 @@ function syncObjectToSong(currentFeature) {
     if (AUDIO.ended || !center.isOccupied) clearInterval(currentSync)
     songIds.forEach(songId => {
       let shape = currentWorld.sphere.cells[songId]
-      beatRotation(shape, tempo/2)
+      beatRotation(shape, tempo/6)
     })
   }, tempo, songIds)
 }
@@ -305,22 +308,21 @@ function shuffleFromCurrent() {
   }
 }
 
-export const neutralView = () => {
-  console.log('RUNNING RIGHT NOW')
-  controls.target.set(0, 0, 0)
-  camera.position.set(0, 0 , 100)
-}
-
 export const switchToAll = () => {
+  if(isAll) {
+    unCenterAll()
+    return
+  }
+  centerAll()
   controls.target.set(0, 0, 0)
-  switchNucleus([0, 0, 0])
+  // switchNucleus([0, 0, 0])
 }
 
 export const switchWorld = (currentPlaylist) => {
   if(isAll) unCenterAll()
   currentWorld.sphere = father[currentPlaylist.id]
   controls.target.set(...currentWorld.sphere.nucleus)
-  switchNucleus(currentWorld.sphere.nucleus)
+  // switchNucleus(currentWorld.sphere.nucleus)
 }
 
 export const restartScene = () => {

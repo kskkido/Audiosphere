@@ -11,18 +11,18 @@ const ADD_SONGS = 'ADD SONGS'
 const RENDERED = 'RENDERED'
 const RESTART = 'RESTART RENDER'
 const CHANGE_PLAYLIST = 'CHANGE PLAYLIST'
-const ALL_PLAYLISTS = 'ALL PLAYLISTS'
+const SET_TO_ALL = 'SET TO ALL'
 
 /* ============ DEFINE ACTION CREATORS ============ */
 
 export const fetched = playlists => ({ type: FETCH, playlists })
 export const fetchedSongs = songArr => ({type: FETCH_SONGS, songArr})
-export const setCurrentPlaylist = (playlistId, through3d) => {type: SET_CURRENT_PLAYLIST, playlistId}
+export const setCurrentPlaylist = playlistId => ({type: SET_CURRENT_PLAYLIST, playlistId})
 export const addSongs = songs => ({type: ADD_SONGS, songs})
 export const hasRendered = () => ({type: RENDERED})
 export const restartRender = () => ({type: RESTART})
 export const changePlaylist = () => ({type: CHANGE_PLAYLIST})
-export const addAll = allPlaylists => ({type: ALL_PLAYLISTS, allPlaylists})
+export const setToAll = () => ({type: SET_TO_ALL})
 
 /* ============ DEFINE REDUCER ============ */
 
@@ -32,7 +32,6 @@ const initialState = {
   currentPlaylist: {},
   playlists: [],
   allSongs: [],
-  allPlaylists: {}
 }
 
 export default (state=initialState, action) => {
@@ -45,9 +44,6 @@ export default (state=initialState, action) => {
       document.getElementById(state.currentPlaylist.id).classList.remove("current-playlist", 'active')
     }
     document.getElementById(action.playlistId).classList.add("current-playlist")
-    if (action.playlistId === 'all') {
-      return Object.assign({}, state, {currentPlaylist: state.allPlaylists})
-    }
     return Object.assign({}, state, {currentPlaylist: findById(state.playlists, action.playlistId)})
 
   case ADD_SONGS:
@@ -61,9 +57,12 @@ export default (state=initialState, action) => {
 
   case CHANGE_PLAYLIST:
     return Object.assign({}, initialState, {userPlaylist: !state.userPlaylist})
-  
-  case ALL_PLAYLISTS:
-    return Object.assign({}, state, {allPlaylists: action.allPlaylists})
+
+  case SET_TO_ALL:
+    if (state.currentPlaylist.id) {
+      document.getElementById(state.currentPlaylist.id).classList.remove("current-playlist", 'active')
+    }
+    return Object.assign({}, state, {currentPlaylist: {}})
   }
 
   return state
@@ -94,10 +93,7 @@ export const fetchInitialData = user => dispatch => {
       .then(res => arr[i].songs = res.data.items)
     }))
     .then((res) => {
-      const allSongs = res.reduce((total, current) => [...total, ...current], [])
-      const allPlaylists = {id:'all', name:'All Songs', songs: allSongs }
-      dispatch(addSongs(allSongs))
-      dispatch(addAll(allPlaylists))
+      dispatch(addSongs(res.reduce((total, current) => [...total, ...current], [])))
       dispatch(fetched(playlists))
       dispatch(setCurrentPlaylist(playlists[0].id))
     })
@@ -110,16 +106,12 @@ export const fetchFeaturedPlaylists = user => dispatch => {
   testAxiosInstance.get('https://api.spotify.com/v1/browse/featured-playlists/?limit=10')
   .then(res => res.data.playlists.items)
   .then(playlists => {
-    console.log(playlists)
     axios.all(playlists.map((playlist, i, arr) => {
       return testAxiosInstance.get(playlist.tracks.href)
       .then(res => arr[i].songs = res.data.items)
     }))
     .then((res) => {
-      const allSongs = res.reduce((total, current) => [...total, ...current], [])
-      const allPlaylists = {id:'all', name:'All Songs', songs: allSongs }
-      dispatch(addSongs(allSongs))
-      dispatch(addAll(allPlaylists))
+      dispatch(addSongs(res.reduce((total, current) => [...total, ...current], [])))
       dispatch(fetched(playlists))
       dispatch(setCurrentPlaylist(playlists[0].id))
     })
