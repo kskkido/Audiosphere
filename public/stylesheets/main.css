@@ -10,6 +10,11 @@ body {
 
 #top-nav {
 	position:absolute;
+	color: green !important;
+}
+
+#top-nav a {
+	font-size: 20px;
 }
 
 .non-across {
@@ -26,4 +31,8 @@ body {
 
 .collapsible-header {
   font-size: 23px !important;
+}
+
+.current-playlist {
+  background-color: rgba(0, 0, 0, 0.1)
 }

@@ -10,15 +10,10 @@ const Main = ({children, user}) => {
     <div id='home'>
       {/* <h1>YO</h1> */}
         <Navbar />
-        {user 
-          ?
-          <div className="non-across">
-    		    <SideBar />
-    	      { children }
-          </div>
-  	      : 
-          <Login />
-  	    }
+        <div className="non-across">
+  		    <SideBar />
+  	      { children }
+        </div>
     </div>
   )
 }

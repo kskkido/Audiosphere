@@ -1,10 +1,10 @@
 import React from 'react'
-import { fetchPlaylists, fetchPlaylistSongs, setCurrentPlaylist } from '../reducers/playlists'
-import { findBySongId, init, sceneRender } from '../canvasMaterial/songShape'
+import { fetchPlaylists, fetchPlaylistSongs, neutralView, setCurrentPlaylist } from '../reducers/playlists'
+import { centerAll, findBySongId, init, sceneRender } from '../canvasMaterial/songShape'
 import UserControls from './userControls'
 import {findById} from '../reducers/utils'
 
-const Sidebar = ({ currentPlaylist, playlists, setCurrentPlaylist, user }) => {
+const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, user }) => {
 
   // function renderPlaylistSongs() {
   //   return currentPlaylist.songs.map(songInfo => <li key={`${songInfo.track.id}`} id={`${songInfo.track.id}`}>{`${songInfo.track.name} - ${songInfo.track.artists[0].name}`}</li>)
@@ -13,8 +13,8 @@ const Sidebar = ({ currentPlaylist, playlists, setCurrentPlaylist, user }) => {
   function renderPlaylists() {
     return playlists.map(playlist => {
       return (
-        <li key={`${playlist.id}`}>
-          <a onClick={() => selectOnClick(playlist.id)} className="collapsible-header waves-effect playlist-name" value={`${playlist.id}`}>
+        <li key={`${playlist.id}`} id={`${playlist.id}`}>
+          <a onClick={(event) => selectPlaylist(playlist.id, event)} className="collapsible-header waves-effect playlist-name" value={`${playlist.id}`}>
             {playlist.name}
           </a>
           <div className="collapsible-body transparent">
@@ -37,16 +37,24 @@ const Sidebar = ({ currentPlaylist, playlists, setCurrentPlaylist, user }) => {
     })
   }
 
-  function selectOnClick(playlistId) {
-    console.log(playlistId)
+  function renderAllSongs() {
+    return allSongs.map(song => {
+      return (
+        <li onClick={() => selectSong(song.track.id)} key={`${song.track.id}allSongs`} value={`${song.track.id}`}>
+          <a className="waves-effect">{`${song.track.name} - ${song.track.artists[0].name}`}</a>
+        </li>
+      )
+    })
+  }
+
+  function selectPlaylist(playlistId, event) {
+    console.log(event.target.classList.contains('active'))
     setCurrentPlaylist(playlistId)
   }
 
-  function selectSong(songId) {
-    findBySongId(songId, currentPlaylist)
+  function selectSong(songId, all) {
+    findBySongId(songId, currentPlaylist, all)
   }
-
-  console.log('LOOOK AT ME', window)
 
   return (
 
@@ -54,13 +62,17 @@ const Sidebar = ({ currentPlaylist, playlists, setCurrentPlaylist, user }) => {
       <ul id="slide-out" className="side-nav fixed transparent">
         <ul className="collapsible" data-collapsible="accordion">
           <li>
-            <a className="collapsible-header waves-effect">
+            <a onClick={centerAll} className="collapsible-header waves-effect">
               All Songs
             </a>
+            <div className="collapsible-body transparent">
+              <ul className="song-list">
+                {renderAllSongs()}
+              </ul>
+            </div>
           </li>
-          <li><div className="divider"></div></li>
           <li>
-            <span className="sidebar-header" style={{fontSize: '23px', paddingLeft: '7px'}}>
+            <span className="sidebar-header" style={{fontSize: '23px', paddingLeft: '10px'}}>
               Your Playlists:
             </span>
           </li>
@@ -78,6 +90,7 @@ const mapStateToProps = state => ({
   user: state.auth,
   playlists: state.userLibrary.playlists,
   currentPlaylist: state.userLibrary.currentPlaylist,
+  allSongs: state.userLibrary.allSongs,
 })
 
 const mapDispatchToProps = dispatch => ({

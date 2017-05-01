@@ -4,12 +4,12 @@ import { fetchPlaylists, fetchPlaylistSongs, hasRendered, render } from '../redu
 import { init, initAll, sceneRender, switchWorld } from '../canvasMaterial/songShape'
 
 const CanvasControls = ({ currentPlaylist, playlists, render, rendered, user }) => {
-  if (playlists.length > 19 && !render) {
+  if (playlists.length > 0 && !render) {
     initAll(playlists, currentPlaylist)
     rendered()
     sceneRender()
   }
-  if (currentPlaylist.id) {
+  if (currentPlaylist.id && render) {
     switchWorld(currentPlaylist)
   }
   return null

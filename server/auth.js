@@ -78,7 +78,7 @@ OAuth.setupStrategy({
   config: {
     clientID: 'acd4cd127b1d499686949a35f02e3b1a',
     clientSecret: '93d3eec86a2d454584dcdc0042b17878',
-    callbackURL: `http://localhost:1337/api/auth/login/spotify`,
+    callbackURL: `${app.baseUrl}/api/auth/login/spotify`,
   },
   passport
 })

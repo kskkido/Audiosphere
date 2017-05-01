@@ -12,7 +12,7 @@ const THREEx = require('threex.domevents')
 const cameraTween = new TWEEN(camera.position).to({
 	x: targetObj.position.x,
 	y: targetObj.position.y,
-	z: targetObj.position.z,
+	z: targetObj.position.z + 30,
 }).easing(TWEEN.Easing.Sinusoidal.EaseInOut)
 
 function switchCameraTo (world) {
@@ -20,3 +20,9 @@ function switchCameraTo (world) {
 	control.center.set(0, 0, 0)
 	camera.position.copy(control.center).add(New THREE.Vector3(nucleus[0], nucleus[1], nucleus[2]+70))
 }
+
+const objetTween = new TWEEN(object.position).to({
+	x: object.nucleus[0],
+	y: object.nucleus[1],
+	z: object.nucleus[2]
+}).easing(TWEEN.Easing.Sinusoidal.EaseInOut)

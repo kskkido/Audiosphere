@@ -8,45 +8,50 @@ import {setCurrentPlaylist} from '../reducers/playlists'
 const THREE = require('three')
 const OrbitControls = require('three-orbitcontrols')
 const THREEx = require('threex.domevents')
+const TWEEN = require('tween.js')
 
-const father = {}
-const allObjects = []
-const objectHash = {}
+let father = {}
+let allObjects = []
 const center = {
   isOccupied: false
 }
 let currentSync = false
-let currentWorld
+let currentWorld = {
+  sphere: {},
+  isFogged: true
+}
+let currentRenderer
+let isAll = false
 
 // state.playlists.item[19]
 
 /* ========== DEFINE CAMERA  ========== */
 
-export const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 2000)
-camera.position.z = 140
+export const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 1000)
+camera.position.z = 100
 camera.position.x = 10
 
 /* ========== DEFINE SCENE  ========== */
 
 const scene = new THREE.Scene()
-scene.fog = new THREE.FogExp2(0xcccccc, 0.002)
+scene.fog = new THREE.FogExp2(0xb6b6b6, 0.0006)
 
 /* ========== DEFINE LIGHT  ========== */
 
-const firstLight = new THREE.PointLight(0xFFFF00)
-firstLight.position.set(0, 0, 0)
+// const firstLight = new THREE.PointLight(0xFFFF00)
+// firstLight.position.set(0, 0, 0)
 
-scene.add(firstLight)
+// scene.add(firstLight)
 
-const secondLight = new THREE.PointLight(0xFFFF00)
-secondLight.position.set(25, 25, 25)
+// const secondLight = new THREE.PointLight(0xFFFF00)
+// secondLight.position.set(25, 25, 25)
 
-scene.add(secondLight)
+// scene.add(secondLight)
 
 /* ========== DEFINE RENDERER  ========== */
 
 export const renderer = new THREE.WebGLRenderer({ antialias: false })
-renderer.setClearColor(scene.fog.color, 1)
+renderer.setClearColor(scene.fog.color, .7)
 renderer.setSize(window.innerWidth, window.innerHeight)
 
 /* ========== DEFINE CONTROLLER  ========== */
@@ -59,15 +64,15 @@ controls.enableZoom = true
 
 /* ========== DEFINE PUBLIC API, INITIATOR  ========== */
 
-const domEvents = new THREEx.DomEvents(camera, renderer.domElement)
+let domEvents
 const vector = new THREE.Vector3()
 
-export const init = (playlist, constant = 0) => {
+export const init = (playlist, constant) => {
   const icosahedronArr = []
   const songList = playlist.songs
-  const nucleus = [constant+10, constant+10, constant+10]
+  const nucleus = constant
   father[playlist.id] = {
-    world: {},
+    cells: {},
     nucleus: nucleus,
     currentCenter: null,
     playlistId: playlist.id,
@@ -82,7 +87,6 @@ export const init = (playlist, constant = 0) => {
     icosahedron.playlistId = playlist.id
     domEvents.addEventListener(icosahedron, 'click', (event) => centerSelect(event.target))
     allObjects.push(icosahedron)
-    objectHash[currentSong.id] = icosahedron
     return icosahedron
   }
 
@@ -94,9 +98,9 @@ export const init = (playlist, constant = 0) => {
       const theta = Math.sqrt(playlist.tracks.total * Math.PI) * phi
       const icosahedron = createIcosahedron(currentSong)
       const position = [
-        (50 * Math.cos(theta) * Math.sin(phi))+10+constant,
-        (50 * Math.sin(theta) * Math.sin(phi))+10+constant,
-        (50* Math.cos(phi))+10+constant
+        (50 * Math.cos(theta) * Math.sin(phi))+nucleus[0],
+        (50 * Math.sin(theta) * Math.sin(phi))+nucleus[1],
+        (50* Math.cos(phi))+nucleus[2]
       ]
       icosahedron.position.set(...position)
       icosahedron.startingPosition = position
@@ -105,7 +109,7 @@ export const init = (playlist, constant = 0) => {
       icosahedron.lookAt(vector)
 
       icosahedronArr.push(icosahedron)
-      father[playlist.id].world[currentSong.id] = icosahedron
+      father[playlist.id].cells[currentSong.id] = icosahedron
     }
     addToScene(icosahedronArr)
   }
@@ -115,8 +119,79 @@ export const init = (playlist, constant = 0) => {
 /* ========== DEFINE INITIALIZATION  ========== */
 
 export const initAll = (playlists, currentPlaylist, allSongs) => {
-  playlists.forEach((playlist, i) => {
-    init(playlist, i*100)
+  domEvents = new THREEx.DomEvents(camera, renderer.domElement)
+  for (let i = 0; i < playlists.length; i++) {
+    const phi = Math.acos(-1 + (2 * i)/playlists.length)
+    const theta = Math.sqrt(playlists.length * Math.PI) * phi
+    const nucleus = [
+      (20 * playlists.length * Math.cos(theta) * Math.sin(phi))+10,
+      (20 * playlists.length * Math.sin(theta) * Math.sin(phi)),
+      (20 * playlists.length * Math.cos(phi))
+    ]
+    init(playlists[i], nucleus)
+  }
+}
+
+/* ========== DEFINE TWEEN ANIMATIONS ========== */
+
+function centerAnimation (object) {
+  new TWEEN.Tween(object.position).to({
+    x: object.nucleus[0],
+    y: object.nucleus[1],
+    z: object.nucleus[2]
+  }, 500)
+  .easing(TWEEN.Easing.Circular.Out)
+  .start()
+}
+
+function uncenterAnimation (object) {
+  new TWEEN.Tween(object.position).to({
+    x: object.startingPosition[0],
+    y: object.startingPosition[1],
+    z: object.startingPosition[2]
+  }, 500)
+  .easing(TWEEN.Easing.Circular.Out)
+  .start()
+}
+
+function beatRotation (object, tempo) {
+  new TWEEN.Tween(object.rotation).to({
+    x: object.rotation.x + .7,
+    y: object.rotation.y + .7
+  }, tempo)
+  .start()
+}
+
+export function centerAll () {
+  isAll = true
+  switchToAll()
+  allObjects.forEach((object, i) => {
+    console.log('OBJECT', i)
+    object.originalStartingPosition = object.startingPosition
+    object.nucleus = [0, 0, 0]
+    const phi = Math.acos(-1 + (2 * i)/allObjects.length)
+    const theta = Math.sqrt(allObjects.length * Math.PI) * phi
+    let position = [
+      (50 * Math.cos(theta) * Math.sin(phi)),
+      (50 * Math.sin(theta) * Math.sin(phi)),
+      (50* Math.cos(phi)),
+    ]
+    new TWEEN.Tween(object.position).to({
+      x: position[0],
+      y: position[1],
+      z: position[2],
+    }, 1500)
+    .easing(TWEEN.Easing.Circular.Out)
+    .start()
+    object.startingPosition = position
+  })
+}
+
+function unCenterAll () {
+  allObjects.forEach(object => {
+    object.nucleus = father[object.playlistId].nucleus
+    object.startingPosition = object.originalStartingPosition
+    uncenterAnimation(object)
   })
 }
 
@@ -130,29 +205,41 @@ export const initAll = (playlists, currentPlaylist, allSongs) => {
 //     -renderer.devicePixelRatio * (event.pageY - this.offsetLeft) / this.width * 2 - 1,
 //   )
 // })
+// function centerIt(instance) {
+//   if (center.isOccupied) {
+//     center.instance.position.set(...center.instance.startingPosition)
+//     center.instance.isCentered = false
+//     center.instance.material.wireframe = true
+//   }
+//   center.instance = instance
+//   center.isOccupied = true
+//   instance.position.set(...instance.nucleus)
+//   instance.isCentered = true
+// }
+
 function centerIt(instance) {
   if (center.isOccupied) {
-    center.instance.position.set(...center.instance.startingPosition)
+    uncenterAnimation(center.instance)
     center.instance.isCentered = false
     center.instance.material.wireframe = true
   }
   center.instance = instance
   center.isOccupied = true
-  instance.position.set(...instance.nucleus)
+  centerAnimation(instance)
   instance.isCentered = true
 }
 
 function unCenterIt(instance) {
-  center.instance.position.set(...center.instance.startingPosition)
+  uncenterAnimation(center.instance)
   center.isOccupied = false
   instance.isCentered = false
   // camera.position.set(0, 0, 70)
 }
 
 function centerSelect(object) {
-  // if(currentWorld.playlistId !== object.playlistId) {
-  //   store.dispatch(setCurrentPlaylist(object.playlistId))
-  // }
+  if(!isAll && currentWorld.sphere.playlistId !== object.playlistId) {
+    store.dispatch(setCurrentPlaylist(object.playlistId, true))
+  }
   clearInterval(currentSync)
   if (object.isCentered) {
     store.dispatch(removeCurrentSong())
@@ -179,8 +266,8 @@ function addToScene(arr) {
   arr.forEach(shape => scene.add(shape))
 }
 
-export const findBySongId = (songId) => {
-  const currentObj = currentWorld.world[songId]
+export const findBySongId = (songId, all = false) => {
+  const currentObj = currentWorld.sphere.cells[songId]
   console.log(currentWorld)
   if(currentObj) centerSelect(currentObj)
 }
@@ -192,33 +279,66 @@ function switchNucleus(nucleus) {
 function syncCameraToSong() {}
 
 function syncObjectToSong(currentFeature) {
+  const songIds = Object.keys(currentWorld.sphere.cells)
+  const tempo = (currentFeature.track.tempo/60)*1000
   currentSync = setInterval(() => {
-    if (AUDIO.ended || !AUDIO.src) clearInterval(currentSync)
-    allObjects.forEach(shape => {
-      shape.rotation.x += 0.1
-      shape.rotation.y += 0.1
+    if (AUDIO.ended || !center.isOccupied) clearInterval(currentSync)
+    songIds.forEach(songId => {
+      let shape = currentWorld.sphere.cells[songId]
+      beatRotation(shape, tempo/2)
     })
-  }, (currentFeature.track.tempo/60)*1000)
+  }, tempo, songIds)
 }
 
+// export const toggleFog = () => {
+//   console.log('LOOK AT MEEE', currentWorld.isFogged)
+//   currentWorld.isFogged ? renderer.setClearColor() : renderer.setClearColor(0xcccccc)
+// }
+
 function shuffleFromCurrent() {
-  const songIds = Object.keys(currentWorld.world)
-  const randomObject = currentWorld.world[songIds[Math.floor(Math.random()*songIds.length)]]
-  centerSelect(randomObject)
+  if(isAll) {
+    centerSelect(allObjects[Math.floor(Math.random(allObjects.length))])
+  } else {
+    const songIds = Object.keys(currentWorld.sphere.cells)
+    const randomObject = currentWorld.sphere.cells[songIds[Math.floor(Math.random()*songIds.length)]]
+    centerSelect(randomObject)
+  }
+}
+
+export const neutralView = () => {
+  console.log('RUNNING RIGHT NOW')
+  controls.target.set(0, 0, 0)
+  camera.position.set(0, 0 , 100)
+}
+
+export const switchToAll = () => {
+  controls.target.set(0, 0, 0)
+  switchNucleus([0, 0, 0])
 }
 
 export const switchWorld = (currentPlaylist) => {
-  currentWorld = father[currentPlaylist.id]
-  controls.center.set(...currentWorld.nucleus)
-  camera.position.set(currentWorld.nucleus[0], currentWorld.nucleus[0], currentWorld.nucleus[2]+140)
+  if(isAll) unCenterAll()
+  currentWorld.sphere = father[currentPlaylist.id]
+  controls.target.set(...currentWorld.sphere.nucleus)
+  switchNucleus(currentWorld.sphere.nucleus)
+}
+
+export const restartScene = () => {
+  allObjects.forEach(object => {
+    scene.remove(object)
+    domEvents = null
+  })
+  allObjects = []
+  father = {}
 }
 
 export const sceneRender = function() {
-  window.requestAnimationFrame(sceneRender)
+  currentRenderer = requestAnimationFrame(sceneRender)
   renderer.render(scene, camera)
   if (AUDIO.ended) {
     shuffleFromCurrent()
   }
+  TWEEN.update()
   allObjects.forEach(shape => {
     shape.rotation.x += 0.005
     shape.rotation.y += 0.005
