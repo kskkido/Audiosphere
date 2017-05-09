@@ -40,20 +40,27 @@ const Navbar = ({ currentPlaylist, fetchFeatured, fetchInitialData, login, logou
     )
   }
 
+  function isLoggedIn() {
+    return userPlaylist ? getFeaturedPlaylists() : getUserPlaylists()
+  }
+
   return (
   <nav className="transparent" id="top-nav">
     {renderDropdown()}
     <div className="wrapper nav-wrapper">
       <a href="#" data-activates="slide-out" className="button-collapse left"><i className="material-icons">menu</i></a>
       <ul id="nav-mobile" className="right" style={{marginRight: '20px'}}>
-      <li><a className="dropdown-button" data-beloworigin="true" href="#!" data-activates="dropdown1">Change View<i className="material-icons right">arrow_drop_down</i></a></li>
-        {userPlaylist ? getFeaturedPlaylists() : getUserPlaylists()}
+        {user ? isLoggedIn() : null}
         {user ? renderLogout() : renderLogin()}
         <li><a style={{target: "_blank"}} href="https://www.spotify.com/us/">Spotify</a></li>
       </ul>
     </div>
   </nav>
   )
+}
+
+function isLoggedIn() {
+  return userPlaylist ? getFeaturedPlaylists() : getUserPlaylists()
 }
 
 function renderDropdown () {

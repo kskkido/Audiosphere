@@ -34,6 +34,7 @@ export const whoami = () =>
     axios.get('/api/auth/whoami')
       .then(response => {
         const user = response.data
+        console.log(user)
         testAxiosInstance = createUserConfig(user)
         dispatch(authenticated(user))
         dispatch(fetchInitialData(user))

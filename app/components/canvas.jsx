@@ -6,6 +6,7 @@ import { init, initAll, sceneRender, switchWorld } from '../canvasMaterial/songS
 const CanvasControls = ({ currentPlaylist, playlists, render, rendered, user }) => {
   if (playlists.length > 0 && !render) {
     initAll(playlists, currentPlaylist)
+    // promisify initAll
     rendered()
     sceneRender()
   }

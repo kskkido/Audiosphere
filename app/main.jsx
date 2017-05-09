@@ -17,8 +17,8 @@ render(
   <Provider store={store}>
     <Router history={browserHistory}>
       <Route path="/" component={Main}>
-        <IndexRedirect to="/canvas" />
-        <Route path="/canvas" component={CanvasControls} />
+        <IndexRedirect to="/tentative" />
+        <Route path="/tentative" component={CanvasControls} />
       </Route>
       <Route path='*' component={NotFound} />
     </Router>

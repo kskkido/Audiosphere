@@ -83,8 +83,10 @@ export default (state=initialState, action) => {
 //   .catch(err => console.error('Failed to fetch playlist: ', err))
 // }
 
-export const fetchInitialData = user => dispatch => {
-  dispatch(restartRender())
+export const fetchInitialData = user => (dispatch, storeState) => {
+  if (storeState.render) dispatch(restartRender())
+  console.log(storeState)
+  console.log(testAxiosInstance.header)
   testAxiosInstance.get('https://api.spotify.com/v1/me/playlists/?limit=40')
   .then(res => res.data.items)
   .then(playlists => {

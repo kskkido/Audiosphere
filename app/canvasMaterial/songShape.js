@@ -28,14 +28,14 @@ let isAll = false
 
 /* ========== DEFINE CAMERA  ========== */
 
-export const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 2000)
+export const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 1800)
 camera.position.z = 100
 camera.position.x = 10
 
 /* ========== DEFINE SCENE  ========== */
 
 const scene = new THREE.Scene()
-scene.fog = new THREE.FogExp2(0xb6b6b6, 0.0001)
+scene.fog = new THREE.FogExp2(0xb6b6b6, 0.001)
 
 /* ========== DEFINE LIGHT  ========== */
 
@@ -132,6 +132,9 @@ export const initAll = (playlists, currentPlaylist, allSongs) => {
     ]
     init(playlists[i], nucleus)
   }
+  // if (isAll) {
+  //   centerAll()
+  // }
 }
 
 /* ========== DEFINE TWEEN ANIMATIONS ========== */
@@ -165,6 +168,7 @@ function beatRotation (object, tempo) {
 }
 
 function pulseObject (object) {
+  console.log(object)
   const originalSize = Object.assign({}, object.scale)
   const targetSize = {
     x: originalSize.x + .07,
@@ -183,6 +187,7 @@ function pulseObject (object) {
 
 export function centerAll () {
   isAll = true
+  controls.target.set(0, 0, 0)
   allObjects.forEach((object, i) => {
     object.originalStartingPosition = object.startingPosition
     object.nucleus = [0, 0, 0]
@@ -249,6 +254,8 @@ function centerIt(instance) {
 
 function unCenterIt(instance) {
   uncenterAnimation(center.instance)
+  clearInterval(currentSync)
+  store.dispatch(removeCurrentSong())
   center.isOccupied = false
   instance.isCentered = false
   // camera.position.set(0, 0, 70)
@@ -296,25 +303,22 @@ function switchNucleus(nucleus) {
   camera.position.set(nucleus[0], nucleus[1], nucleus[2]+130)
 }
 
-function syncCameraToSong() {}
-
 function syncObjectToSong(currentFeature) {
+  clearInterval(currentSync)
   const songIds = Object.keys(currentWorld.sphere.cells)
   const tempo = (currentFeature.track.tempo/60)*1000
   currentSync = setInterval(() => {
-    if (AUDIO.ended || !center.isOccupied) clearInterval(currentSync)
-    songIds.forEach(songId => {
-      const shape = currentWorld.sphere.cells[songId]
-      pulseObject(shape)
-      // beatRotation(shape, tempo/6)
-    })
+    if (AUDIO.ended || !center.isOccupied) {
+      clearInterval(currentSync)
+    } else {
+      songIds.forEach(songId => {
+        const shape = currentWorld.sphere.cells[songId]
+        pulseObject(shape)
+        // beatRotation(shape, tempo/6)
+      })
+    }
   }, tempo, songIds)
 }
-
-// export const toggleFog = () => {
-//   console.log('LOOK AT MEEE', currentWorld.isFogged)
-//   currentWorld.isFogged ? renderer.setClearColor() : renderer.setClearColor(0xcccccc)
-// }
 
 function shuffleFromCurrent() {
   if(isAll) {
@@ -327,13 +331,7 @@ function shuffleFromCurrent() {
 }
 
 export const switchToAll = () => {
-  if(isAll) {
-    unCenterAll()
-    return
-  }
-  centerAll()
-  controls.target.set(0, 0, 0)
-  // switchNucleus([0, 0, 0])
+  isAll ? unCenterAll() : centerAll()
 }
 
 export const switchWorld = (currentPlaylist) => {
@@ -346,7 +344,9 @@ export const switchWorld = (currentPlaylist) => {
 export const restartScene = () => {
   allObjects.forEach(object => {
     scene.remove(object)
-    domEvents = null
+    object.material.dispose()
+    object.geometry.dispose()
+    object = null
   })
   allObjects = []
   father = {}

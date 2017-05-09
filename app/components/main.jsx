@@ -17,7 +17,7 @@ const Main = ({children, currentSong, user}) => {
         </div>
         <div className="song-card">
           <div className="song-snippet z-depth-2">
-            <span className="snippet-text">{currentSong.name ? currentSong.name : null} </span><i className="material-icons">hearing</i>
+            <div className="snippet-text">{currentSong.name ? currentSong.name : null}</div><i className="material-icons">hearing</i>
           </div>
         </div>
     </div>

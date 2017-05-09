@@ -1,6 +1,5 @@
 # Ignore all node_modules
 node_modules/*
-.spotifySecret
 
 # ...except the symlink to ourselves.
 !node_modules/APP
@@ -11,3 +10,5 @@ public/bundle.js.map
 
 # NPM errors
 npm-debug.log
+
+.spotifySecret

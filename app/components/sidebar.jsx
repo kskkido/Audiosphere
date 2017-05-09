@@ -77,7 +77,7 @@ const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, set
           </li>
           <li>
             <span className="sidebar-header" style={{fontSize: '23px', paddingLeft: '10px'}}>
-              Your Playlists:
+              Playlists:
             </span>
           </li>
           { playlists.length > 0 && renderPlaylists() }
