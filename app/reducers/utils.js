@@ -1,9 +1,7 @@
 import axios from 'axios'
 
 export const createUserConfig = user => {
-  console.log(user)
   if(user) {
-    console.log(`Bearer ${user.accessToken}`)
   return axios.create({
     headers: {
       'Authorization': `Bearer ${user.accessToken}`

@@ -3,7 +3,7 @@ const axios = require('axios')
 import store from '../store'
 import {AUDIO} from '../main'
 import {removeCurrentSong, setCurrentSong} from '../reducers/player'
-import {setCurrentPlaylist} from '../reducers/playlists'
+import {hasRendered, setCurrentPlaylist} from '../reducers/playlists'
 
 const THREE = require('three')
 const OrbitControls = require('three-orbitcontrols')
@@ -12,17 +12,26 @@ const TWEEN = require('tween.js')
 
 let father = {}
 let allObjects = []
-const songCatalog = {}
+let songCatalog = {}
 const center = {
   isOccupied: false
 }
 let currentSync = false
-let currentWorld = {
+const currentWorld = {
   sphere: {},
   isFogged: true
 }
 let currentRenderer
 let isAll = false
+
+function initialState () {
+  father = {}
+  allObjects = []
+  songCatalog = {}
+  currentSync = false
+  currentWorld.sphere = {}
+  currentRenderer = null
+}
 
 // state.playlists.item[19]
 
@@ -132,6 +141,9 @@ export const initAll = (playlists, currentPlaylist, allSongs) => {
     ]
     init(playlists[i], nucleus)
   }
+  store.dispatch(hasRendered())
+  sceneRender()
+  console.log(allObjects)
   // if (isAll) {
   //   centerAll()
   // }
@@ -348,8 +360,7 @@ export const restartScene = () => {
     object.geometry.dispose()
     object = null
   })
-  allObjects = []
-  father = {}
+  initialState()
 }
 
 export const sceneRender = function() {
