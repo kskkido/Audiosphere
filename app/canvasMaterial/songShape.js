@@ -1,9 +1,9 @@
 const axios = require('axios')
 
 import store from '../store'
-import {AUDIO} from '../main'
-import {removeCurrentSong, setCurrentSong} from '../reducers/player'
-import {hasRendered, setCurrentPlaylist} from '../reducers/playlists'
+import { AUDIO } from '../main'
+import { removeCurrentSong, setCurrentSong } from '../reducers/player'
+import { hasRendered, setCurrentPlaylist } from '../reducers/playlists'
 
 const THREE = require('three')
 const OrbitControls = require('three-orbitcontrols')
@@ -63,6 +63,12 @@ scene.fog = new THREE.FogExp2(0xb6b6b6, 0.001)
 export const renderer = new THREE.WebGLRenderer({ antialias: false })
 renderer.setClearColor(scene.fog.color, .5)
 renderer.setSize(window.innerWidth, window.innerHeight)
+
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight)
+  camera.aspect = window.innerWidth / window.innerHeight
+  camera.updateProjectionMatrix()
+})
 
 /* ========== DEFINE CONTROLLER  ========== */
 
@@ -143,7 +149,6 @@ export const initAll = (playlists, currentPlaylist, allSongs) => {
   }
   store.dispatch(hasRendered())
   sceneRender()
-  console.log(allObjects)
   // if (isAll) {
   //   centerAll()
   // }
@@ -180,7 +185,6 @@ function beatRotation (object, tempo) {
 }
 
 function pulseObject (object) {
-  console.log(object)
   const originalSize = Object.assign({}, object.scale)
   const targetSize = {
     x: originalSize.x + .07,
@@ -232,25 +236,7 @@ function unCenterAll () {
 
 
 
-/* ========== DEFINE EVENT HANDLER ========== */
-
-// renderer.domElement.addEventListener('mousedown', (event) => {
-//   const vector = new THREE.vector3(
-//     renderer.devicePixelRatio * (event.pageX - this.offsetLeft) / this.width * 2 - 1,
-//     -renderer.devicePixelRatio * (event.pageY - this.offsetLeft) / this.width * 2 - 1,
-//   )
-// })
-// function centerIt(instance) {
-//   if (center.isOccupied) {
-//     center.instance.position.set(...center.instance.startingPosition)
-//     center.instance.isCentered = false
-//     center.instance.material.wireframe = true
-//   }
-//   center.instance = instance
-//   center.isOccupied = true
-//   instance.position.set(...instance.nucleus)
-//   instance.isCentered = true
-// }
+/* ========== DEFINE EVENT CALLBACK ========== */
 
 function centerIt(instance) {
   if (center.isOccupied) {
@@ -270,7 +256,6 @@ function unCenterIt(instance) {
   store.dispatch(removeCurrentSong())
   center.isOccupied = false
   instance.isCentered = false
-  // camera.position.set(0, 0, 70)
 }
 
 function centerSelect(object) {
@@ -285,11 +270,9 @@ function centerSelect(object) {
     playbackSource(object.song)
     centerIt(object)
   }
-  // target.material.wireframe = !target.isCentered
 }
 
 function playbackSource(song) {
-  console.log(song.preview_url)
   AUDIO.src = song.preview_url
   store.dispatch(setCurrentSong(song))
   .then(() => {
@@ -297,16 +280,18 @@ function playbackSource(song) {
   })
 }
 
+// UTIL FUNCTIONS
+
 function addToScene(arr) {
   arr.forEach(shape => scene.add(shape))
 }
 
-export const findBySongId = (songId) => {
+export const findBySongId = songId => {
   const currentObj = currentWorld.sphere.cells[songId]
   if(currentObj) centerSelect(currentObj)
 }
 
-export const findFromAll = (songId) => {
+export const findFromAll = songId => {
   const currentObj = songCatalog[songId]
   centerSelect(currentObj)
 }
@@ -355,9 +340,10 @@ export const switchWorld = (currentPlaylist) => {
 
 export const restartScene = () => {
   allObjects.forEach(object => {
-    scene.remove(object)
     object.material.dispose()
     object.geometry.dispose()
+    scene.remove(object)
+    console.log(scene)
     object = null
   })
   initialState()

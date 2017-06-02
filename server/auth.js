@@ -34,47 +34,6 @@ const auth = require('express').Router()
  * variables with your hosting provider.
  **/
 
-// Facebook needs the FACEBOOK_CLIENT_ID and FACEBOOK_CLIENT_SECRET
-// environment variables.
-OAuth.setupStrategy({
-  provider: 'facebook',
-  strategy: require('passport-facebook').Strategy,
-  config: {
-    clientID: env.FACEBOOK_CLIENT_ID,
-    clientSecret: env.FACEBOOK_CLIENT_SECRET,
-    callbackURL: `${app.baseUrl}/api/auth/login/facebook`,
-  },
-  passport
-})
-
-// Google needs the GOOGLE_CLIENT_SECRET AND GOOGLE_CLIENT_ID
-// environment variables.
-OAuth.setupStrategy({
-  provider: 'google',
-  strategy: require('passport-google-oauth').OAuth2Strategy,
-  config: {
-    clientID: env.GOOGLE_CLIENT_ID,
-    clientSecret: env.GOOGLE_CLIENT_SECRET,
-    callbackURL: `${app.baseUrl}/api/auth/login/google`,
-  },
-  passport
-})
-
-// Github needs the GITHUB_CLIENT_ID AND GITHUB_CLIENT_SECRET
-// environment variables.
-OAuth.setupStrategy({
-  provider: 'github',
-  strategy: require('passport-github2').Strategy,
-  config: {
-    clientID: env.GITHUB_CLIENT_ID,
-    clientSecret: env.GITHUB_CLIENT_SECRET,
-    callbackURL: `${app.baseUrl}/api/auth/login/github`,
-  },
-  passport
-})
-
-console.log(env)
-
 OAuth.setupStrategy({
   provider: 'spotify',
   strategy: require('passport-spotify').Strategy,
@@ -86,29 +45,6 @@ OAuth.setupStrategy({
   passport
 })
 
-// passport.use(require('passport-spotify').Strategy,
-//   // Spotify will send back the token and profile
-//   function(token, refreshToken, profile, done) {
-//     // the callback will pass back user profile information and each service (Facebook, Twitter, and Spotify) will pass it back a different way. Passport standardizes the information that comes back in its profile object.
-//     console.log('---', 'in verification callback', profile, '---')
-//     User.findOrCreate({
-//       where: {
-//         spotifyId: profile.id
-//       },
-//       defaults: {
-//         name: profile.displayName,
-//         email: profile.emails[0].value,
-//       }
-//     })
-//     .spread(user => {
-//       done(null, user)
-//     })
-//     .catch(done)
-//   })
-
-// Other passport configuration:
-// Passport review in the Week 6 Concept Review:
-// https://docs.google.com/document/d/1MHS7DzzXKZvR6MkL8VWdCxohFJHGgdms71XNLIET52Q/edit?usp=sharing
 passport.serializeUser((user, done) => {
   done(null, user.id)
 })

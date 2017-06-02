@@ -2,13 +2,9 @@ import React from 'react'
 import { fetchPlaylists, fetchPlaylistSongs, neutralView, setCurrentPlaylist, setToAll } from '../reducers/playlists'
 import { findFromAll, findBySongId, init, sceneRender, switchToAll } from '../canvasMaterial/songShape'
 import UserControls from './userControls'
-import {findById} from '../reducers/utils'
+import { findById } from '../reducers/utils'
 
 const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, setToAll, user }) => {
-
-  // function renderPlaylistSongs() {
-  //   return currentPlaylist.songs.map(songInfo => <li key={`${songInfo.track.id}`} id={`${songInfo.track.id}`}>{`${songInfo.track.name} - ${songInfo.track.artists[0].name}`}</li>)
-  // }
 
   function renderPlaylists() {
     return playlists.map(playlist => {
@@ -48,7 +44,6 @@ const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, set
   }
 
   function selectPlaylist(playlistId, event) {
-    // console.log(event.target.classList.contains('active'))
     setCurrentPlaylist(playlistId)
   }
 
@@ -87,8 +82,8 @@ const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, set
   )
 }
 
-import {login} from 'APP/app/reducers/auth'
-import {connect} from 'react-redux'
+import { login } from 'APP/app/reducers/auth'
+import { connect } from 'react-redux'
 
 const mapStateToProps = state => ({
   user: state.auth,

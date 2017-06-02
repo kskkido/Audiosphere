@@ -1,5 +1,5 @@
 import React from 'react'
-import {connect} from 'react-redux'
+import { connect } from 'react-redux'
 import { fetchPlaylists, fetchPlaylistSongs, hasRendered, render } from '../reducers/playlists'
 import { init, initAll, sceneRender, switchWorld } from '../canvasMaterial/songShape'
 
@@ -11,7 +11,6 @@ const CanvasControls = ({ currentPlaylist, playlists, render, rendered, user }) 
     // sceneRender()
   }
   if (currentPlaylist.id && render) {
-    console.log(currentPlaylist.id)
     switchWorld(currentPlaylist)
   }
   return null

@@ -1,9 +1,9 @@
 import React from 'react'
-import {connect} from 'react-redux'
+import { connect } from 'react-redux'
 import { removeCurrentSong } from '../reducers/player'
 import { fetchFeaturedPlaylists, fetchInitialData, restartRender } from '../reducers/playlists'
 import { init, sceneRender, restartScene } from '../canvasMaterial/songShape'
-import {login, logout} from 'APP/app/reducers/auth'
+import { login, logout } from 'APP/app/reducers/auth'
 
 const Navbar = ({ currentPlaylist, fetchFeatured, fetchInitialData, login, logout, playlists, restartRender, user, userPlaylist }) => {
 

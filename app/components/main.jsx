@@ -5,11 +5,9 @@ import { Login } from './Login'
 import Navbar from './Navbar'
 import SideBar from './sidebar'
 
-const Main = ({children, currentSong, user}) => {
+const Main = ({ children, currentSong, user }) => {
   return (
     <div id='home'>
-      {/* <h1>YO</h1> */}
-        {/*!user && <Login />*/}
         <Navbar />
         <div className="non-across">
   		    <SideBar />

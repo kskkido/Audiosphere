@@ -14,7 +14,7 @@ const playSong = song => ({type: SET_CURRENT_SONG, song})
 const stopSong = () => ({type: REMOVE_CURRENT_SONG})
 const setFeatures = features => ({type: SET_FEATURES, features})
 
-export const initialPlayerState = {
+const initialPlayerState = {
   currentSong: {},
   currentSongFeatures: {},
   currentSongList: [],
@@ -28,7 +28,7 @@ export default (state = initialPlayerState, action) => {
     return Object.assign({}, state, {isPlaying: true})
 
   case STOP_PLAYING:
-    return Object.assign({}, state, {isPlaying: true})
+    return Object.assign({}, state, {isPlaying: false})
 
   case SET_CURRENT_SONG:
     return Object.assign({}, state, {currentSong: action.song})
