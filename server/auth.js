@@ -1,6 +1,7 @@
 const app = require('APP'), {env} = app
 const debug = require('debug')(`${app.name}:auth`)
 const passport = require('passport')
+const secret = require('../.secret.json')
 
 const db = require('APP/db')
 const OAuth = db.model('oauths'),
@@ -72,12 +73,14 @@ OAuth.setupStrategy({
   passport
 })
 
+console.log(env)
+
 OAuth.setupStrategy({
   provider: 'spotify',
   strategy: require('passport-spotify').Strategy,
   config: {
-    clientID: 'acd4cd127b1d499686949a35f02e3b1a',
-    clientSecret: '93d3eec86a2d454584dcdc0042b17878',
+    clientID: secret.SPOTIFY_CLIENT_ID,
+    clientSecret: secret.SPOTIFY_CLIENT_SECRET,
     callbackURL: `${app.baseUrl}/api/auth/login/spotify`,
   },
   passport
