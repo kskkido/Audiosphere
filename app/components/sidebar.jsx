@@ -7,9 +7,9 @@ import { findById } from '../reducers/utils'
 const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, setToAll, user }) => {
 
   function renderPlaylists() {
-    return playlists.map(playlist => {
+    return playlists.map((playlist, i) => {
       return (
-        <li key={`${playlist.id}`} id={`${playlist.id}`}>
+        <li key={`${i}`} id={`${playlist.id}`}>
           <a onClick={(event) => selectPlaylist(playlist.id, event)} className="collapsible-header waves-effect playlist-name" value={`${playlist.id}`}>
             {playlist.name}
           </a>
@@ -24,9 +24,9 @@ const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, set
   }
 
   function renderPlaylistSongs(songList) {
-    return songList.map(song => {
+    return songList.map((song, i) => {
       return (
-        <li onClick={() => selectSong(song.track.id)} key={`${song.track.id}`} value={`${song.track.id}`}>
+        <li onClick={() => selectSong(song.track.id)} key={`${i}`} value={`${song.track.id}`}>
           <a className="waves-effect">{`${song.track.name} - ${song.track.artists[0].name}`}</a>
         </li>
       )
@@ -34,9 +34,9 @@ const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, set
   }
 
   function renderAllSongs() {
-    return allSongs.map(song => {
+    return allSongs.map((song, i) => {
       return (
-        <li onClick={() => selectFromAll(song.track.id)} key={`${song.track.id}allSongs`} value={`${song.track.id}`}>
+        <li onClick={() => selectFromAll(song.track.id)} key={`${i}`} value={`${song.track.id}`}>
           <a className="waves-effect">{`${song.track.name} - ${song.track.artists[0].name}`}</a>
         </li>
       )

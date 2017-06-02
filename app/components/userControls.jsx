@@ -6,7 +6,6 @@ import { fetchPlaylists, fetchPlaylistSongs, setCurrentPlaylist } from '../reduc
 const UserControls = ({ playlists, setCurrentPlaylist, user }) => {
 
   function renderDropdown() {
-      console.log(playlists[0].name)
     return playlists.map((playlist, i) => <option key={`${i}`} value={playlist.id}>{playlist.name}</option>)
   }
 

@@ -25,6 +25,5 @@ render(
   </Provider>,
   document.getElementById('main')
 )
-document.getElementById('canvas').appendChild(renderer.domElement)
 
 export const AUDIO = document.createElement('audio')

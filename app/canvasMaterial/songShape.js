@@ -64,6 +64,8 @@ export const renderer = new THREE.WebGLRenderer({ antialias: false })
 renderer.setClearColor(scene.fog.color, .5)
 renderer.setSize(window.innerWidth, window.innerHeight)
 
+/* ========== DYNAMIC CANVAS SIZE ========== */
+
 window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight)
   camera.aspect = window.innerWidth / window.innerHeight
@@ -343,7 +345,7 @@ export const restartScene = () => {
     object.material.dispose()
     object.geometry.dispose()
     scene.remove(object)
-    console.log(scene)
+    console.log(object)
     object = null
   })
   initialState()

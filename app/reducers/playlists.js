@@ -2,6 +2,8 @@ import axios from 'axios'
 import { createUserConfig, findById } from './utils'
 import { testAxiosInstance } from './auth'
 
+import { renderer } from '../canvasMaterial/songShape.js'
+
 /* ============ DEFINE ACTION TYPE ============ */
 
 const FETCH = 'FETCH PLAYLIST'
@@ -96,6 +98,7 @@ export const fetchInitialData = user => dispatch => {
       dispatch(addSongs(res.reduce((total, current) => [...total, ...current], [])))
       dispatch(fetched(playlists))
       dispatch(setCurrentPlaylist(playlists[0].id))
+      document.getElementById('canvas').appendChild(renderer.domElement)
     })
   })
   .catch(err => console.error('Failed to initialize ', err))
