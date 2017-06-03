@@ -1624,7 +1624,7 @@ var CallbackQueue = __webpack_require__(106);
 var PooledClass = __webpack_require__(23);
 var ReactFeatureFlags = __webpack_require__(111);
 var ReactReconciler = __webpack_require__(30);
-var Transaction = __webpack_require__(46);
+var Transaction = __webpack_require__(45);
 
 var invariant = __webpack_require__(1);
 
@@ -2209,13 +2209,13 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.whoami = exports.logout = exports.login = exports.authenticated = exports.customAxios = undefined;
 
-var _axios = __webpack_require__(40);
+var _axios = __webpack_require__(52);
 
 var _axios2 = _interopRequireDefault(_axios);
 
 var _utils = __webpack_require__(56);
 
-var _userLibrary = __webpack_require__(330);
+var _userLibrary = __webpack_require__(34);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2265,7 +2265,7 @@ var whoami = exports.whoami = function whoami() {
       var user = response.data;
       exports.customAxios = customAxios = (0, _utils.createUserConfig)(user);
       dispatch(authenticated(user));
-      dispatch((0, _userLibrary.fetchInitialData)(user));
+      dispatch((0, _userLibrary.fetchPlaylists)(false));
     }).catch(function (failed) {
       return dispatch(authenticated(null));
     });
@@ -2893,7 +2893,7 @@ var _assign = __webpack_require__(4);
 var ReactCurrentOwner = __webpack_require__(15);
 
 var warning = __webpack_require__(2);
-var canDefineProperty = __webpack_require__(49);
+var canDefineProperty = __webpack_require__(48);
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 
 var REACT_ELEMENT_TYPE = __webpack_require__(136);
@@ -3335,7 +3335,7 @@ var _warning2 = _interopRequireDefault(_warning);
 
 var _PathUtils = __webpack_require__(19);
 
-var _Actions = __webpack_require__(41);
+var _Actions = __webpack_require__(40);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3428,7 +3428,7 @@ var locationsAreEqual = exports.locationsAreEqual = function locationsAreEqual(a
 
 
 var DOMNamespaces = __webpack_require__(63);
-var setInnerHTML = __webpack_require__(48);
+var setInnerHTML = __webpack_require__(47);
 
 var createMicrosoftUnsafeLocalFunction = __webpack_require__(70);
 var setTextContent = __webpack_require__(124);
@@ -4024,7 +4024,7 @@ var createFactory = ReactElement.createFactory;
 var cloneElement = ReactElement.cloneElement;
 
 if (process.env.NODE_ENV !== 'production') {
-  var canDefineProperty = __webpack_require__(49);
+  var canDefineProperty = __webpack_require__(48);
   var ReactElementValidator = __webpack_require__(137);
   var didWarnPropTypesDeprecated = false;
   createElement = ReactElementValidator.createElement;
@@ -4099,7 +4099,145 @@ module.exports = React;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 34 */,
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.fetchPlaylists = exports.setToAll = exports.changePlaylist = exports.restartRender = exports.addSongs = exports.setCurrentPlaylist = exports.fetchedSongs = exports.fetched = undefined;
+
+var _axios = __webpack_require__(52);
+
+var _axios2 = _interopRequireDefault(_axios);
+
+var _utils = __webpack_require__(56);
+
+var _auth = __webpack_require__(18);
+
+var _audioSphere = __webpack_require__(91);
+
+var _audioSphere2 = _interopRequireDefault(_audioSphere);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var renderAllPlaylists = _audioSphere2.default.renderAllPlaylists,
+    switchWorld = _audioSphere2.default.switchWorld;
+
+/* ============ DEFINE ACTION TYPE ============ */
+
+var FETCH = 'FETCH PLAYLIST';
+var FETCH_SONGS = 'FETCH SONGS';
+var SET_CURRENT_PLAYLIST = 'SET CURRENT PLAYLIST';
+var ADD_SONGS = 'ADD SONGS';
+var RENDERED = 'RENDERED';
+var RESTART = 'RESTART RENDER';
+var CHANGE_PLAYLIST = 'CHANGE PLAYLIST';
+var SET_TO_ALL = 'SET TO ALL';
+
+/* ============ DEFINE ACTION CREATORS ============ */
+
+var fetched = exports.fetched = function fetched(playlists) {
+  return { type: FETCH, playlists: playlists };
+};
+var fetchedSongs = exports.fetchedSongs = function fetchedSongs(songArr) {
+  return { type: FETCH_SONGS, songArr: songArr };
+};
+var setCurrentPlaylist = exports.setCurrentPlaylist = function setCurrentPlaylist(playlistId) {
+  return { type: SET_CURRENT_PLAYLIST, playlistId: playlistId };
+};
+var addSongs = exports.addSongs = function addSongs(songs) {
+  return { type: ADD_SONGS, songs: songs };
+};
+var restartRender = exports.restartRender = function restartRender() {
+  return { type: RESTART };
+};
+var changePlaylist = exports.changePlaylist = function changePlaylist() {
+  return { type: CHANGE_PLAYLIST };
+};
+var setToAll = exports.setToAll = function setToAll() {
+  return { type: SET_TO_ALL };
+};
+
+/* ============ DEFINE REDUCER ============ */
+
+var initialState = {
+  userPlaylist: true,
+  currentPlaylist: {},
+  playlists: [],
+  allSongs: []
+};
+
+exports.default = function () {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : initialState;
+  var action = arguments[1];
+
+  switch (action.type) {
+    case FETCH:
+      renderAllPlaylists(action.playlists);
+      return Object.assign({}, state, { playlists: action.playlists });
+
+    case SET_CURRENT_PLAYLIST:
+      if (state.currentPlaylist.id) {
+        document.getElementById(state.currentPlaylist.id).classList.remove("current-playlist", 'active');
+      }
+      document.getElementById(action.playlistId).classList.add("current-playlist");
+
+      switchWorld(action.playlistId);
+      return Object.assign({}, state, { currentPlaylist: (0, _utils.findById)(state.playlists, action.playlistId) });
+
+    case ADD_SONGS:
+      return Object.assign({}, state, { allSongs: state.allSongs.concat(action.songs) });
+
+    case RESTART:
+      return initialState;
+
+    case CHANGE_PLAYLIST:
+      return Object.assign({}, initialState, { userPlaylist: !state.userPlaylist });
+
+    case SET_TO_ALL:
+      if (state.currentPlaylist.id) {
+        document.getElementById(state.currentPlaylist.id).classList.remove("current-playlist", 'active');
+      }
+      return Object.assign({}, state, { currentPlaylist: {} });
+  }
+
+  return state;
+};
+
+/* ============ DEFINE DISPATCHER ============ */
+
+var fetchPlaylists = exports.fetchPlaylists = function fetchPlaylists(featured) {
+  return function (dispatch) {
+    if (featured) dispatch(changePlaylist());
+
+    var targetUrl = featured ? 'https://api.spotify.com/v1/browse/featured-playlists/?limit=20' : 'https://api.spotify.com/v1/me/playlists/?limit=40';
+    _auth.customAxios.get(targetUrl).then(function (res) {
+      return featured ? res.data.playlists.items : res.data.items;
+    }).then(function (playlists) {
+      _axios2.default.all(playlists.map(function (playlist, i, arr) {
+        return _auth.customAxios.get(playlist.tracks.href).then(function (res) {
+          return arr[i].songs = res.data.items;
+        });
+      })).then(function (res) {
+        dispatch(addSongs(res.reduce(function (total, current) {
+          return [].concat(_toConsumableArray(total), _toConsumableArray(current));
+        }, [])));
+        dispatch(fetched(playlists));
+        dispatch(setCurrentPlaylist(playlists[0].id));
+      });
+    }).catch(function (err) {
+      return console.error('Failed to initialize ', err);
+    });
+  };
+};
+
+/***/ }),
 /* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -4118,7 +4256,7 @@ module.exports = React;
 
 var _prodInvariant = __webpack_require__(3);
 
-var EventPluginRegistry = __webpack_require__(43);
+var EventPluginRegistry = __webpack_require__(42);
 var EventPluginUtils = __webpack_require__(64);
 var ReactErrorUtils = __webpack_require__(68);
 
@@ -4677,12 +4815,6 @@ var routes = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_prop_types__["one
 /* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(148);
-
-/***/ }),
-/* 41 */
-/***/ (function(module, exports, __webpack_require__) {
-
 "use strict";
 
 
@@ -4708,7 +4840,7 @@ var REPLACE = exports.REPLACE = 'REPLACE';
 var POP = exports.POP = 'POP';
 
 /***/ }),
-/* 42 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4763,7 +4895,7 @@ var isExtraneousPopstateEvent = exports.isExtraneousPopstateEvent = function isE
 };
 
 /***/ }),
-/* 43 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5024,7 +5156,7 @@ module.exports = EventPluginRegistry;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 44 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5042,7 +5174,7 @@ module.exports = EventPluginRegistry;
 
 var _assign = __webpack_require__(4);
 
-var EventPluginRegistry = __webpack_require__(43);
+var EventPluginRegistry = __webpack_require__(42);
 var ReactEventEmitterMixin = __webpack_require__(242);
 var ViewportMetrics = __webpack_require__(117);
 
@@ -5357,7 +5489,7 @@ var ReactBrowserEventEmitter = _assign({}, ReactEventEmitterMixin, {
 module.exports = ReactBrowserEventEmitter;
 
 /***/ }),
-/* 45 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5434,7 +5566,7 @@ SyntheticUIEvent.augmentClass(SyntheticMouseEvent, MouseEventInterface);
 module.exports = SyntheticMouseEvent;
 
 /***/ }),
-/* 46 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5665,7 +5797,7 @@ module.exports = TransactionImpl;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 47 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5793,7 +5925,7 @@ function escapeTextContentForBrowser(text) {
 module.exports = escapeTextContentForBrowser;
 
 /***/ }),
-/* 48 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5896,7 +6028,7 @@ if (ExecutionEnvironment.canUseDOM) {
 module.exports = setInnerHTML;
 
 /***/ }),
-/* 49 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5928,7 +6060,7 @@ module.exports = canDefineProperty;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 50 */
+/* 49 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -5965,7 +6097,7 @@ if (process.env.NODE_ENV !== 'production' && typeof isCrushed.name === 'string' 
 /* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(0)))
 
 /***/ }),
-/* 51 */
+/* 50 */
 /***/ (function(module, exports) {
 
 var g;
@@ -5992,7 +6124,7 @@ module.exports = g;
 
 
 /***/ }),
-/* 52 */
+/* 51 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -6079,6 +6211,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 
+
+/***/ }),
+/* 52 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(148);
 
 /***/ }),
 /* 53 */
@@ -6197,7 +6335,7 @@ var _react = __webpack_require__(6);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _reactRouter = __webpack_require__(52);
+var _reactRouter = __webpack_require__(51);
 
 var _reactDom = __webpack_require__(147);
 
@@ -6336,7 +6474,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.findById = exports.createUserConfig = undefined;
 
-var _axios = __webpack_require__(40);
+var _axios = __webpack_require__(52);
 
 var _axios2 = _interopRequireDefault(_axios);
 
@@ -6467,7 +6605,7 @@ exports.go = exports.replaceLocation = exports.pushLocation = exports.startListe
 
 var _LocationUtils = __webpack_require__(28);
 
-var _DOMUtils = __webpack_require__(42);
+var _DOMUtils = __webpack_require__(41);
 
 var _DOMStateStorage = __webpack_require__(95);
 
@@ -6587,7 +6725,7 @@ var _runTransitionHook = __webpack_require__(61);
 
 var _runTransitionHook2 = _interopRequireDefault(_runTransitionHook);
 
-var _Actions = __webpack_require__(41);
+var _Actions = __webpack_require__(40);
 
 var _LocationUtils = __webpack_require__(28);
 
@@ -6805,7 +6943,7 @@ var ReactDOMComponentTree = __webpack_require__(5);
 var ReactInstrumentation = __webpack_require__(13);
 
 var createMicrosoftUnsafeLocalFunction = __webpack_require__(70);
-var setInnerHTML = __webpack_require__(48);
+var setInnerHTML = __webpack_require__(47);
 var setTextContent = __webpack_require__(124);
 
 function getNodeAfter(parentNode, node) {
@@ -8925,7 +9063,7 @@ var _prodInvariant = __webpack_require__(25);
 
 var ReactNoopUpdateQueue = __webpack_require__(82);
 
-var canDefineProperty = __webpack_require__(49);
+var canDefineProperty = __webpack_require__(48);
 var emptyObject = __webpack_require__(27);
 var invariant = __webpack_require__(1);
 var warning = __webpack_require__(2);
@@ -52870,7 +53008,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _redux = __webpack_require__(50);
+var _redux = __webpack_require__(49);
 
 var _reduxDevtoolsExtension = __webpack_require__(313);
 
@@ -53164,7 +53302,462 @@ module.exports = function bind(fn, thisArg) {
 
 
 /***/ }),
-/* 91 */,
+/* 91 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _store = __webpack_require__(85);
+
+var _store2 = _interopRequireDefault(_store);
+
+var _main = __webpack_require__(54);
+
+var _player = __webpack_require__(55);
+
+var _userLibrary = __webpack_require__(34);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var THREE = __webpack_require__(83);
+var OrbitControls = __webpack_require__(326);
+var THREEx = __webpack_require__(327);
+var TWEEN = __webpack_require__(328);
+
+exports.default = function () {
+	var AudioSphere = function () {
+		function AudioSphere() {
+			_classCallCheck(this, AudioSphere);
+
+			this.loadInitialState();
+			this.loadScene();
+			this.loadRenderer();
+			this.loadCamera();
+			this.loadControls();
+			this.loadDomEvents();
+
+			this.sceneRender = this.sceneRender.bind(this);
+
+			// for public API
+			this.renderAllPlaylists = this.renderAllPlaylists.bind(this);
+			this.switchToAll = this.switchToAll.bind(this);
+			this.switchWorld = this.switchWorld.bind(this);
+			this.selectFromSideNav = this.selectFromSideNav.bind(this);
+		}
+
+		/*========== LOAD METHODS ==========*/
+
+		_createClass(AudioSphere, [{
+			key: 'loadInitialState',
+			value: function loadInitialState() {
+				this.allObjects = [];
+				this.songHash = {};
+				this.playlistCluster = {};
+
+				this.currentSync = null;
+				this.currentWorld = {
+					sphere: {},
+					isFogged: true
+				};
+				this.currentRenderer = null;
+
+				this.center = {
+					songObject: null,
+					isOccupied: false
+				};
+
+				this.isAll = false;
+			}
+		}, {
+			key: 'loadRenderer',
+			value: function loadRenderer() {
+				this.renderer = new THREE.WebGLRenderer({ antialias: false });
+				this.renderer.setClearColor(this.scene.fog.color, 0.6);
+				this.renderer.setSize(window.innerWidth, window.innerHeight);
+			}
+		}, {
+			key: 'loadCamera',
+			value: function loadCamera() {
+				this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1800);
+				this.camera.z = 100;
+				this.camera.x = 10;
+			}
+		}, {
+			key: 'loadScene',
+			value: function loadScene() {
+				this.scene = new THREE.Scene();
+				this.scene.fog = new THREE.FogExp2(0x4C5760, 0.0005);
+			}
+		}, {
+			key: 'loadControls',
+			value: function loadControls() {
+				this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+				this.controls.enableDamping = true;
+				this.controls.dampingFactor = 0.25;
+				this.controls.enableZoom = true;
+			}
+		}, {
+			key: 'loadDomEvents',
+			value: function loadDomEvents() {
+				this.domEvents = new THREEx.DomEvents(this.camera, this.renderer.domElement);
+			}
+		}, {
+			key: 'loadSettings',
+			value: function loadSettings() {
+				var _this = this;
+
+				$('#canvas').append(this.renderer.domElement);
+
+				window.addEventListener('resize', function () {
+					_this.renderer.setSize(window.innerWidth, window.innerHeight);
+					_this.camera.aspect = window.innerWidth / window.innerHeight;
+					_this.camera.updateProjectionMatrix();
+				});
+
+				// load materialize css controls
+				$('.collapsible').collapsible();
+				$(".button-collapse").sideNav({ draggable: true });
+				$(".dropdown-button").dropdown();
+			}
+
+			/*========== DEFINE SCENE RENDER METHOD ==========*/
+
+		}, {
+			key: 'sceneRender',
+			value: function sceneRender() {
+				this.currentRenderer = requestAnimationFrame(this.sceneRender);
+				this.renderer.render(this.scene, this.camera);
+
+				if (_main.AUDIO.ended) {
+					this.shuffleFromCurrent();
+				}
+
+				TWEEN.update();
+
+				this.allObjects.forEach(function (shape) {
+					shape.rotation.x += 0.005;
+					shape.rotation.y += 0.005;
+				});
+			}
+
+			/*========== CREATE SONG OBJECTS AND PLAYLISTS ==========*/
+
+		}, {
+			key: 'renderAllPlaylists',
+			value: function renderAllPlaylists(playlists) {
+				if (this.allObjects.length > 0) this.restartScene();
+
+				for (var i = 0; i < playlists.length; i++) {
+					var phi = Math.acos(-1 + 2 * i / playlists.length);
+					var theta = Math.sqrt(playlists.length * Math.PI) * phi;
+					var nucleus = [20 * playlists.length * Math.cos(theta) * Math.sin(phi) + 10, 20 * playlists.length * Math.sin(theta) * Math.sin(phi), 20 * playlists.length * Math.cos(phi)];
+					this.createPlaylistObject(playlists[i], nucleus);
+				}
+
+				this.loadSettings();
+				this.sceneRender();
+			}
+		}, {
+			key: 'createPlaylistObject',
+			value: function createPlaylistObject(playlist, nucleus) {
+				this.playlistCluster[playlist.id] = {
+					cells: {},
+					nucleus: nucleus,
+					currentCenter: null,
+					playlistId: playlist.id
+				};
+
+				var songList = playlist.songs;
+
+				for (var i = 0; i < songList.length; i++) {
+					var _songObject$position;
+
+					var currentSong = songList[i].track;
+					var phi = Math.acos(-1 + 2 * i / playlist.tracks.total);
+					var theta = Math.sqrt(playlist.tracks.total * Math.PI) * phi;
+
+					var position = [65 * Math.cos(theta) * Math.sin(phi) + nucleus[0], 65 * Math.sin(theta) * Math.sin(phi) + nucleus[1], 65 * Math.cos(phi) + nucleus[2]];
+
+					var songObject = this.createSongObject(currentSong, nucleus, playlist.id);
+					(_songObject$position = songObject.position).set.apply(_songObject$position, position);
+					songObject.startingPosition = position;
+
+					this.playlistCluster[playlist.id].cells[currentSong.id] = songObject;
+
+					this.scene.add(songObject);
+				}
+			}
+		}, {
+			key: 'createSongObject',
+			value: function createSongObject(song, nucleus, playlistId) {
+				var _this2 = this;
+
+				var geometry = new THREE.IcosahedronGeometry(3, 0);
+				var material = new THREE.MeshBasicMaterial({ wireframe: true });
+				var songObject = new THREE.Mesh(geometry, material);
+
+				songObject.song = song;
+				songObject.nucleus = nucleus;
+				songObject.playlistId = playlistId;
+				this.domEvents.addEventListener(songObject, 'click', function (event) {
+					return _this2.centerSelect(event.target);
+				});
+
+				this.allObjects.push(songObject);
+				this.songHash[song.id] = songObject;
+				return songObject;
+			}
+
+			/*========== CENTER ACTIONS ==========*/
+
+		}, {
+			key: 'centerAll',
+			value: function centerAll() {
+				this.isAll = true;
+				this.controls.target.set(0, 0, 0);
+				this.allObjects.forEach(this.centerAllAnimation, this);
+			}
+		}, {
+			key: 'unCenterAll',
+			value: function unCenterAll() {
+				var _this3 = this;
+
+				this.isAll = false;
+				this.allObjects.forEach(function (songObject) {
+					songObject.nucleus = _this3.playlistCluster[songObject.playlistId].nucleus;
+					songObject.startingPosition = songObject.originalStartingPosition;
+					_this3.uncenterAnimation(songObject);
+				});
+			}
+		}, {
+			key: 'centerSong',
+			value: function centerSong(songObject) {
+				if (this.center.isOccupied) {
+					this.uncenterAnimation(this.center.songObject);
+				}
+				this.center.songObject = songObject;
+				this.center.isOccupied = true;
+				this.centerAnimation(songObject);
+			}
+		}, {
+			key: 'uncenterSong',
+			value: function uncenterSong(songObject) {
+				this.uncenterAnimation(this.center.songObject);
+				clearInterval(this.currentSync);
+				_store2.default.dispatch((0, _player.removeCurrentSong)());
+				this.center.isOccupied = false;
+			}
+		}, {
+			key: 'centerSelect',
+			value: function centerSelect(songObject) {
+				if (!this.isAll && this.currentWorld.sphere.playlistId !== songObject.playlistId) {
+					_store2.default.dispatch((0, _userLibrary.setCurrentPlaylist)(songObject.playlistId, true));
+				}
+				clearInterval(this.currentSync);
+
+				if (songObject === this.center.songObject) {
+					_store2.default.dispatch((0, _player.removeCurrentSong)());
+					this.uncenterSong(songObject);
+				} else {
+					this.playbackSource(songObject.song);
+					this.centerSong(songObject);
+				}
+			}
+
+			/*========== CENTERING ANIMATIONS ==========*/
+
+		}, {
+			key: 'centerAnimation',
+			value: function centerAnimation(object) {
+				new TWEEN.Tween(object.position).to({
+					x: object.nucleus[0],
+					y: object.nucleus[1],
+					z: object.nucleus[2]
+				}, 500).easing(TWEEN.Easing.Circular.Out).start();
+			}
+		}, {
+			key: 'uncenterAnimation',
+			value: function uncenterAnimation(object) {
+				new TWEEN.Tween(object.position).to({
+					x: object.startingPosition[0],
+					y: object.startingPosition[1],
+					z: object.startingPosition[2]
+				}, 1000).easing(TWEEN.Easing.Sinusoidal.Out).start();
+			}
+		}, {
+			key: 'centerAllAnimation',
+			value: function centerAllAnimation(object, i) {
+				object.originalStartingPosition = object.startingPosition;
+				object.nucleus = [0, 0, 0];
+
+				var phi = Math.acos(-1 + 2 * i / this.allObjects.length);
+				var theta = Math.sqrt(this.allObjects.length * Math.PI) * phi;
+
+				var position = [120 * Math.cos(theta) * Math.sin(phi), 120 * Math.sin(theta) * Math.sin(phi), 120 * Math.cos(phi)];
+
+				new TWEEN.Tween(object.position).to({
+					x: position[0],
+					y: position[1],
+					z: position[2]
+				}, 1500).easing(TWEEN.Easing.Sinusoidal.InOut).start();
+
+				object.startingPosition = position;
+			}
+
+			/*========== AUDIO METHODS ==========*/
+
+		}, {
+			key: 'playbackSource',
+			value: function playbackSource(song) {
+				var _this4 = this;
+
+				_main.AUDIO.src = song.preview_url;
+
+				_store2.default.dispatch((0, _player.setCurrentSong)(song)).then(function () {
+					_this4.syncObjectToSong(_store2.default.getState().player.currentSongFeatures);
+				});
+			}
+		}, {
+			key: 'shuffleFromCurrent',
+			value: function shuffleFromCurrent() {
+				if (this.isAll) {
+					this.centerSelect(this.allObjects[Math.floor(Math.random(this.allObjects.length))]);
+				} else {
+					var songIds = Object.keys(this.currentWorld.sphere.cells);
+					var randomObject = this.currentWorld.sphere.cells[songIds[Math.floor(Math.random() * songIds.length)]];
+					this.centerSelect(randomObject);
+				}
+			}
+		}, {
+			key: 'syncObjectToSong',
+			value: function syncObjectToSong(currentFeature) {
+				var _this5 = this;
+
+				clearInterval(this.currentSync);
+				var songIds = Object.keys(this.currentWorld.sphere.cells);
+				var tempo = currentFeature.track.tempo / 60 * 1000;
+
+				this.currentSync = setInterval(function () {
+					if (_main.AUDIO.ended || !_this5.center.isOccupied) {
+						clearInterval(_this5.currentSync);
+					} else {
+						songIds.forEach(function (songId) {
+							var shape = _this5.currentWorld.sphere.cells[songId];
+							if (shape) _this5.pulseObject(shape);
+							// beatRotation(shape, tempo/6)
+						});
+					}
+				}, tempo, songIds);
+			}
+
+			/*========== AUDIO PLAYBACK ANIMATIONS ==========*/
+
+		}, {
+			key: 'beatRotation',
+			value: function beatRotation(songObject, tempo) {
+				new TWEEN.Tween(songObject.rotation).to({
+					x: songObject.rotation.x + 0.7,
+					y: songObject.rotation.y + 0.7
+				}, tempo).start();
+			}
+		}, {
+			key: 'pulseObject',
+			value: function pulseObject(songObject) {
+				var originalSize = Object.assign({}, songObject.scale);
+				var targetSize = {
+					x: originalSize.x + 0.07,
+					y: originalSize.y + 0.07,
+					z: originalSize.z + 0.07
+				};
+
+				new TWEEN.Tween(songObject.scale).to(targetSize, 200).easing(TWEEN.Easing.Sinusoidal.Out).chain(new TWEEN.Tween(songObject.scale).to(originalSize, 100)).start();
+			}
+
+			/*========== SIDENAV METHOD ==========*/
+
+		}, {
+			key: 'selectFromSideNav',
+			value: function selectFromSideNav(songId) {
+				var fromAll = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+				fromAll ? this.centerSelect(this.songHash[songId]) : this.centerSelect(this.currentWorld.sphere.cells[songId]);
+			}
+
+			/*========== CAMERA/PLAYLIST SWITCH METHODS ==========*/
+
+		}, {
+			key: 'switchToAll',
+			value: function switchToAll() {
+				this.isAll ? this.unCenterAll() : this.centerAll();
+			}
+		}, {
+			key: 'switchWorld',
+			value: function switchWorld(playlistId) {
+				var _controls$target;
+
+				if (this.isAll) this.unCenterAll();
+				this.currentWorld.sphere = this.playlistCluster[playlistId];
+				(_controls$target = this.controls.target).set.apply(_controls$target, _toConsumableArray(this.currentWorld.sphere.nucleus));
+			}
+
+			/*========== GARBAGE COLLECTION !NEEDS WORK! ==========*/
+
+		}, {
+			key: 'restartScene',
+			value: function restartScene() {
+				var _this6 = this;
+
+				if (this.isAll) $('.collapsible').collapsible('close', 0);
+
+				this.allObjects.forEach(function (songObject) {
+					_this6.scene.remove(songObject);
+					songObject.song = null;
+					songObject.nucleus = null;
+					songObject.playlistId = null;
+					songObject.geometry.dispose();
+					songObject.material.dispose();
+					songObject = null;
+				}, this);
+				this.allObjects.splice(0);
+
+				this.loadInitialState();
+				cancelAnimationFrame(this.currentRenderer);
+				$('canvas').remove();
+			}
+		}]);
+
+		return AudioSphere;
+	}();
+
+	var _ref = new AudioSphere(),
+	    renderAllPlaylists = _ref.renderAllPlaylists,
+	    selectFromSideNav = _ref.selectFromSideNav,
+	    switchToAll = _ref.switchToAll,
+	    switchWorld = _ref.switchWorld;
+
+	// PUBLIC API
+
+
+	return {
+		renderAllPlaylists: renderAllPlaylists,
+		selectFromSideNav: selectFromSideNav,
+		switchToAll: switchToAll,
+		switchWorld: switchWorld
+	};
+}();
+
+/***/ }),
 /* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -55391,7 +55984,7 @@ var _prodInvariant = __webpack_require__(3);
 var DOMLazyTree = __webpack_require__(29);
 var DOMProperty = __webpack_require__(20);
 var React = __webpack_require__(33);
-var ReactBrowserEventEmitter = __webpack_require__(44);
+var ReactBrowserEventEmitter = __webpack_require__(43);
 var ReactCurrentOwner = __webpack_require__(15);
 var ReactDOMComponentTree = __webpack_require__(5);
 var ReactDOMContainerInfo = __webpack_require__(225);
@@ -55407,7 +56000,7 @@ var ReactUpdates = __webpack_require__(14);
 var emptyObject = __webpack_require__(27);
 var instantiateReactComponent = __webpack_require__(122);
 var invariant = __webpack_require__(1);
-var setInnerHTML = __webpack_require__(48);
+var setInnerHTML = __webpack_require__(47);
 var shouldUpdateReactComponent = __webpack_require__(75);
 var warning = __webpack_require__(2);
 
@@ -56395,8 +56988,8 @@ module.exports = isTextInputElement;
 
 
 var ExecutionEnvironment = __webpack_require__(7);
-var escapeTextContentForBrowser = __webpack_require__(47);
-var setInnerHTML = __webpack_require__(48);
+var escapeTextContentForBrowser = __webpack_require__(46);
+var setInnerHTML = __webpack_require__(47);
 
 /**
  * Set the textContent property of a node, ensuring that whitespace is preserved
@@ -57345,7 +57938,7 @@ var ReactElement = __webpack_require__(24);
 
 var checkReactTypeSpec = __webpack_require__(309);
 
-var canDefineProperty = __webpack_require__(49);
+var canDefineProperty = __webpack_require__(48);
 var getIteratorFn = __webpack_require__(139);
 var warning = __webpack_require__(2);
 
@@ -58019,7 +58612,7 @@ var _react = __webpack_require__(6);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _reactRouter = __webpack_require__(52);
+var _reactRouter = __webpack_require__(51);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -58134,7 +58727,7 @@ var _react2 = _interopRequireDefault(_react);
 
 var _reactRedux = __webpack_require__(26);
 
-var _reactRouter = __webpack_require__(52);
+var _reactRouter = __webpack_require__(51);
 
 var _Login = __webpack_require__(84);
 
@@ -59057,7 +59650,7 @@ var _reactRedux = __webpack_require__(26);
 
 var _player = __webpack_require__(55);
 
-var _userLibrary = __webpack_require__(330);
+var _userLibrary = __webpack_require__(34);
 
 var _auth = __webpack_require__(18);
 
@@ -59065,8 +59658,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var Navbar = function Navbar(_ref) {
   var currentPlaylist = _ref.currentPlaylist,
-      fetchFeatured = _ref.fetchFeatured,
-      fetchInitialData = _ref.fetchInitialData,
+      fetchPlaylists = _ref.fetchPlaylists,
       login = _ref.login,
       logout = _ref.logout,
       playlists = _ref.playlists,
@@ -59112,8 +59704,8 @@ var Navbar = function Navbar(_ref) {
       null,
       _react2.default.createElement(
         'a',
-        { onClick: function onClick(event) {
-            fetchFeatured();
+        { onClick: function onClick() {
+            restartRender();fetchPlaylists(true);
           } },
         'Load Featured Playlists'
       )
@@ -59126,8 +59718,8 @@ var Navbar = function Navbar(_ref) {
       null,
       _react2.default.createElement(
         'a',
-        { onClick: function onClick(event) {
-            fetchInitialData();
+        { onClick: function onClick() {
+            restartRender();fetchPlaylists();
           } },
         'Load Your Playlists'
       )
@@ -59204,13 +59796,11 @@ var mapStateToProps = function mapStateToProps(state) {
 
 var mapDispatchToProps = function mapDispatchToProps(dispatch) {
   return {
-    fetchFeatured: function fetchFeatured() {
+    fetchPlaylists: function fetchPlaylists() {
+      var featured = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
       dispatch((0, _player.removeCurrentSong)());
-      dispatch((0, _userLibrary.fetchFeaturedPlaylists)());
-    },
-    fetchInitialData: function fetchInitialData() {
-      dispatch((0, _player.removeCurrentSong)());
-      dispatch((0, _userLibrary.fetchInitialData)());
+      dispatch((0, _userLibrary.fetchPlaylists)(featured));
     },
     logout: function logout() {
       return dispatch((0, _auth.logout)());
@@ -59241,11 +59831,11 @@ var _react = __webpack_require__(6);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _userLibrary = __webpack_require__(330);
+var _userLibrary = __webpack_require__(34);
 
 var _utils = __webpack_require__(56);
 
-var _audioSphere = __webpack_require__(331);
+var _audioSphere = __webpack_require__(91);
 
 var _audioSphere2 = _interopRequireDefault(_audioSphere);
 
@@ -59408,11 +59998,11 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _redux = __webpack_require__(50);
+var _redux = __webpack_require__(49);
 
 var rootReducer = (0, _redux.combineReducers)({
   auth: __webpack_require__(18).default,
-  userLibrary: __webpack_require__(330).default,
+  userLibrary: __webpack_require__(34).default,
   player: __webpack_require__(55).default
 });
 
@@ -60578,7 +61168,7 @@ module.exports = factory;
   return accumulateDiff;
 }));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(51)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(50)))
 
 /***/ }),
 /* 170 */
@@ -61412,7 +62002,7 @@ var _warning2 = _interopRequireDefault(_warning);
 
 var _LocationUtils = __webpack_require__(28);
 
-var _DOMUtils = __webpack_require__(42);
+var _DOMUtils = __webpack_require__(41);
 
 var _DOMStateStorage = __webpack_require__(95);
 
@@ -61592,7 +62182,7 @@ var _RefreshProtocol = __webpack_require__(186);
 
 var RefreshProtocol = _interopRequireWildcard(_RefreshProtocol);
 
-var _DOMUtils = __webpack_require__(42);
+var _DOMUtils = __webpack_require__(41);
 
 var _createHistory = __webpack_require__(60);
 
@@ -61688,7 +62278,7 @@ var _invariant2 = _interopRequireDefault(_invariant);
 
 var _ExecutionEnvironment = __webpack_require__(59);
 
-var _DOMUtils = __webpack_require__(42);
+var _DOMUtils = __webpack_require__(41);
 
 var _HashProtocol = __webpack_require__(185);
 
@@ -61848,7 +62438,7 @@ var _createHistory = __webpack_require__(60);
 
 var _createHistory2 = _interopRequireDefault(_createHistory);
 
-var _Actions = __webpack_require__(41);
+var _Actions = __webpack_require__(40);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -62016,7 +62606,7 @@ var freeGlobal = typeof global == 'object' && global && global.Object === Object
 
 /* harmony default export */ __webpack_exports__["a"] = (freeGlobal);
 
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(51)))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(50)))
 
 /***/ }),
 /* 192 */
@@ -62233,7 +62823,7 @@ var freeGlobal = typeof global == 'object' && global && global.Object === Object
 
 module.exports = freeGlobal;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(51)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(50)))
 
 /***/ }),
 /* 200 */
@@ -63976,7 +64566,7 @@ module.exports = DefaultEventPluginOrder;
 
 var EventPropagators = __webpack_require__(36);
 var ReactDOMComponentTree = __webpack_require__(5);
-var SyntheticMouseEvent = __webpack_require__(45);
+var SyntheticMouseEvent = __webpack_require__(44);
 
 var eventTypes = {
   mouseEnter: {
@@ -65652,8 +66242,8 @@ var DOMNamespaces = __webpack_require__(63);
 var DOMProperty = __webpack_require__(20);
 var DOMPropertyOperations = __webpack_require__(107);
 var EventPluginHub = __webpack_require__(35);
-var EventPluginRegistry = __webpack_require__(43);
-var ReactBrowserEventEmitter = __webpack_require__(44);
+var EventPluginRegistry = __webpack_require__(42);
+var ReactBrowserEventEmitter = __webpack_require__(43);
 var ReactDOMComponentFlags = __webpack_require__(108);
 var ReactDOMComponentTree = __webpack_require__(5);
 var ReactDOMInput = __webpack_require__(229);
@@ -65665,7 +66255,7 @@ var ReactMultiChild = __webpack_require__(248);
 var ReactServerRenderingTransaction = __webpack_require__(253);
 
 var emptyFunction = __webpack_require__(11);
-var escapeTextContentForBrowser = __webpack_require__(47);
+var escapeTextContentForBrowser = __webpack_require__(46);
 var invariant = __webpack_require__(1);
 var isEventSupported = __webpack_require__(74);
 var shallowEqual = __webpack_require__(57);
@@ -67606,7 +68196,7 @@ var DOMChildrenOperations = __webpack_require__(62);
 var DOMLazyTree = __webpack_require__(29);
 var ReactDOMComponentTree = __webpack_require__(5);
 
-var escapeTextContentForBrowser = __webpack_require__(47);
+var escapeTextContentForBrowser = __webpack_require__(46);
 var invariant = __webpack_require__(1);
 var validateDOMNesting = __webpack_require__(76);
 
@@ -68078,7 +68668,7 @@ module.exports = {
 
 
 var DOMProperty = __webpack_require__(20);
-var EventPluginRegistry = __webpack_require__(43);
+var EventPluginRegistry = __webpack_require__(42);
 var ReactComponentTreeHook = __webpack_require__(9);
 
 var warning = __webpack_require__(2);
@@ -68563,7 +69153,7 @@ module.exports = ReactDebugTool;
 var _assign = __webpack_require__(4);
 
 var ReactUpdates = __webpack_require__(14);
-var Transaction = __webpack_require__(46);
+var Transaction = __webpack_require__(45);
 
 var emptyFunction = __webpack_require__(11);
 
@@ -68991,7 +69581,7 @@ var EventPluginHub = __webpack_require__(35);
 var EventPluginUtils = __webpack_require__(64);
 var ReactComponentEnvironment = __webpack_require__(67);
 var ReactEmptyComponent = __webpack_require__(110);
-var ReactBrowserEventEmitter = __webpack_require__(44);
+var ReactBrowserEventEmitter = __webpack_require__(43);
 var ReactHostComponent = __webpack_require__(112);
 var ReactUpdates = __webpack_require__(14);
 
@@ -69714,10 +70304,10 @@ var _assign = __webpack_require__(4);
 
 var CallbackQueue = __webpack_require__(106);
 var PooledClass = __webpack_require__(23);
-var ReactBrowserEventEmitter = __webpack_require__(44);
+var ReactBrowserEventEmitter = __webpack_require__(43);
 var ReactInputSelection = __webpack_require__(113);
 var ReactInstrumentation = __webpack_require__(13);
-var Transaction = __webpack_require__(46);
+var Transaction = __webpack_require__(45);
 var ReactUpdateQueue = __webpack_require__(69);
 
 /**
@@ -69991,7 +70581,7 @@ module.exports = ReactRef;
 var _assign = __webpack_require__(4);
 
 var PooledClass = __webpack_require__(23);
-var Transaction = __webpack_require__(46);
+var Transaction = __webpack_require__(45);
 var ReactInstrumentation = __webpack_require__(13);
 var ReactServerUpdateQueue = __webpack_require__(254);
 
@@ -70762,7 +71352,7 @@ var SyntheticClipboardEvent = __webpack_require__(260);
 var SyntheticEvent = __webpack_require__(17);
 var SyntheticFocusEvent = __webpack_require__(263);
 var SyntheticKeyboardEvent = __webpack_require__(265);
-var SyntheticMouseEvent = __webpack_require__(45);
+var SyntheticMouseEvent = __webpack_require__(44);
 var SyntheticDragEvent = __webpack_require__(262);
 var SyntheticTouchEvent = __webpack_require__(266);
 var SyntheticTransitionEvent = __webpack_require__(267);
@@ -71113,7 +71703,7 @@ module.exports = SyntheticCompositionEvent;
 
 
 
-var SyntheticMouseEvent = __webpack_require__(45);
+var SyntheticMouseEvent = __webpack_require__(44);
 
 /**
  * @interface DragEvent
@@ -71420,7 +72010,7 @@ module.exports = SyntheticTransitionEvent;
 
 
 
-var SyntheticMouseEvent = __webpack_require__(45);
+var SyntheticMouseEvent = __webpack_require__(44);
 
 /**
  * @interface WheelEvent
@@ -72192,7 +72782,7 @@ module.exports = getVendorPrefixedEventName;
 
 
 
-var escapeTextContentForBrowser = __webpack_require__(47);
+var escapeTextContentForBrowser = __webpack_require__(46);
 
 /**
  * Escapes attribute value to prevent scripting attacks.
@@ -72760,7 +73350,7 @@ function shallowEqual(objA, objB) {
 exports.__esModule = true;
 exports["default"] = wrapActionCreators;
 
-var _redux = __webpack_require__(50);
+var _redux = __webpack_require__(49);
 
 function wrapActionCreators(actionCreators) {
   return function (dispatch) {
@@ -73680,7 +74270,7 @@ function isActive(_ref, indexOnly, currentLocation, routes, params) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(process) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_history_lib_Actions__ = __webpack_require__(41);
+/* WEBPACK VAR INJECTION */(function(process) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_history_lib_Actions__ = __webpack_require__(40);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_history_lib_Actions___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_history_lib_Actions__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_invariant__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_invariant___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_invariant__);
@@ -75821,7 +76411,7 @@ module.exports = traverseAllChildren;
 "use strict";
 
 
-var compose = __webpack_require__(50).compose;
+var compose = __webpack_require__(49).compose;
 
 exports.__esModule = true;
 exports.composeWithDevTools = (
@@ -76612,7 +77202,7 @@ if (typeof self !== 'undefined') {
 
 var result = (0, _ponyfill2['default'])(root);
 exports['default'] = result;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(51), __webpack_require__(329)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(50), __webpack_require__(329)(module)))
 
 /***/ }),
 /* 325 */
@@ -79094,659 +79684,6 @@ module.exports = function(module) {
 	return module;
 };
 
-
-/***/ }),
-/* 330 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.fetchFeaturedPlaylists = exports.fetchInitialData = exports.setToAll = exports.changePlaylist = exports.restartRender = exports.addSongs = exports.setCurrentPlaylist = exports.fetchedSongs = exports.fetched = undefined;
-
-var _axios = __webpack_require__(40);
-
-var _axios2 = _interopRequireDefault(_axios);
-
-var _utils = __webpack_require__(56);
-
-var _auth = __webpack_require__(18);
-
-var _audioSphere = __webpack_require__(331);
-
-var _audioSphere2 = _interopRequireDefault(_audioSphere);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-var renderAllPlaylists = _audioSphere2.default.renderAllPlaylists,
-    switchWorld = _audioSphere2.default.switchWorld;
-
-/* ============ DEFINE ACTION TYPE ============ */
-
-var FETCH = 'FETCH PLAYLIST';
-var FETCH_SONGS = 'FETCH SONGS';
-var SET_CURRENT_PLAYLIST = 'SET CURRENT PLAYLIST';
-var ADD_SONGS = 'ADD SONGS';
-var RENDERED = 'RENDERED';
-var RESTART = 'RESTART RENDER';
-var CHANGE_PLAYLIST = 'CHANGE PLAYLIST';
-var SET_TO_ALL = 'SET TO ALL';
-
-/* ============ DEFINE ACTION CREATORS ============ */
-
-var fetched = exports.fetched = function fetched(playlists) {
-  return { type: FETCH, playlists: playlists };
-};
-var fetchedSongs = exports.fetchedSongs = function fetchedSongs(songArr) {
-  return { type: FETCH_SONGS, songArr: songArr };
-};
-var setCurrentPlaylist = exports.setCurrentPlaylist = function setCurrentPlaylist(playlistId) {
-  return { type: SET_CURRENT_PLAYLIST, playlistId: playlistId };
-};
-var addSongs = exports.addSongs = function addSongs(songs) {
-  return { type: ADD_SONGS, songs: songs };
-};
-var restartRender = exports.restartRender = function restartRender() {
-  return { type: RESTART };
-};
-var changePlaylist = exports.changePlaylist = function changePlaylist() {
-  return { type: CHANGE_PLAYLIST };
-};
-var setToAll = exports.setToAll = function setToAll() {
-  return { type: SET_TO_ALL };
-};
-
-/* ============ DEFINE REDUCER ============ */
-
-var initialState = {
-  userPlaylist: true,
-  currentPlaylist: {},
-  playlists: [],
-  allSongs: []
-};
-
-exports.default = function () {
-  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : initialState;
-  var action = arguments[1];
-
-  switch (action.type) {
-    case FETCH:
-      renderAllPlaylists(action.playlists);
-      return Object.assign({}, state, { playlists: action.playlists });
-
-    case SET_CURRENT_PLAYLIST:
-      if (state.currentPlaylist.id) {
-        // ISSUE HERE 
-        console.log(state.currentPlaylist.id);
-        document.getElementById(state.currentPlaylist.id).classList.remove("current-playlist", 'active');
-      }
-      document.getElementById(action.playlistId).classList.add("current-playlist");
-
-      switchWorld(action.playlistId);
-      return Object.assign({}, state, { currentPlaylist: (0, _utils.findById)(state.playlists, action.playlistId) });
-
-    case ADD_SONGS:
-      return Object.assign({}, state, { allSongs: state.allSongs.concat(action.songs) });
-
-    case RESTART:
-      return initialState;
-
-    case CHANGE_PLAYLIST:
-      return Object.assign({}, initialState, { userPlaylist: !state.userPlaylist });
-
-    case SET_TO_ALL:
-      if (state.currentPlaylist.id) {
-        document.getElementById(state.currentPlaylist.id).classList.remove("current-playlist", 'active');
-      }
-      return Object.assign({}, state, { currentPlaylist: {} });
-  }
-
-  return state;
-};
-
-/* ============ DEFINE DISPATCHER ============ */
-
-// export const fetchPlaylists = user => dispatch => {
-//   createUserConfig(user).get('https://api.spotify.com/v1/me/playlists')
-//     .then(res => dispatch(fetched(res.data.items)))
-//     .catch(err => console.error('Failed to fetch playlist: ', err))
-// }
-//
-// export const fetchPlaylistSongs = (user, playlists) => dispatch => {
-//   const axiosInstance = createUserConfig(user)
-//   axios.all(playlists.map(playlist => axiosInstance(playlist.tracks.href)))
-//   .then(res => res.forEach(res => dispatch(fetchedSongs(res.data))))
-//   .catch(err => console.error('Failed to fetch playlist: ', err))
-// }
-
-var fetchInitialData = exports.fetchInitialData = function fetchInitialData(user) {
-  return function (dispatch) {
-    _auth.customAxios.get('https://api.spotify.com/v1/me/playlists/?limit=40').then(function (res) {
-      return res.data.items;
-    }).then(function (playlists) {
-      _axios2.default.all(playlists.map(function (playlist, i, arr) {
-        return _auth.customAxios.get(playlist.tracks.href).then(function (res) {
-          return arr[i].songs = res.data.items;
-        });
-      })).then(function (res) {
-        dispatch(addSongs(res.reduce(function (total, current) {
-          return [].concat(_toConsumableArray(total), _toConsumableArray(current));
-        }, [])));
-        dispatch(fetched(playlists));
-        dispatch(setCurrentPlaylist(playlists[0].id));
-      });
-    }).catch(function (err) {
-      return console.error('Failed to initialize ', err);
-    });
-  };
-};
-
-var fetchFeaturedPlaylists = exports.fetchFeaturedPlaylists = function fetchFeaturedPlaylists(user) {
-  return function (dispatch) {
-    dispatch(changePlaylist());
-    _auth.customAxios.get('https://api.spotify.com/v1/browse/featured-playlists/?limit=20').then(function (res) {
-      return res.data.playlists.items;
-    }).then(function (playlists) {
-      _axios2.default.all(playlists.map(function (playlist, i, arr) {
-        return _auth.customAxios.get(playlist.tracks.href).then(function (res) {
-          return arr[i].songs = res.data.items;
-        });
-      })).then(function (res) {
-        dispatch(addSongs(res.reduce(function (total, current) {
-          return [].concat(_toConsumableArray(total), _toConsumableArray(current));
-        }, [])));
-        dispatch(fetched(playlists));
-        dispatch(setCurrentPlaylist(playlists[0].id));
-        $('.collapsible').collapsible('close', 0);
-      });
-    }).catch(function (err) {
-      return console.error('Failed to initialize ', err);
-    });
-  };
-};
-
-// export const fetchPlaylists = (user, featured = false) => dispatch => {
-//   dispatch(changePlaylist())
-//   let targetUrl = featured ? 'https://api.spotify.com/v1/browse/featured-playlists/?limit=20' : 'https://api.spotify.com/v1/me/playlists/?limit=40'
-//   customAxios.get(targetUrl)
-//   .then(res => res.data.playlists.items)
-//   .then(playlists => {
-//     axios.all(playlists.map((playlist, i, arr) => {
-//       return customAxios.get(playlist.tracks.href)
-//       .then(res => arr[i].songs = res.data.items)
-//     }))
-//     .then((res) => {
-//       dispatch(addSongs(res.reduce((total, current) => [...total, ...current], [])))
-//       dispatch(fetched(playlists))
-//       dispatch(setCurrentPlaylist(playlists[0].id))
-//     })
-//   })
-//   .catch(err => console.error('Failed to initialize ', err))
-// }
-
-
-// fetch song everytime a dom object is clicked
-
-/***/ }),
-/* 331 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _store = __webpack_require__(85);
-
-var _store2 = _interopRequireDefault(_store);
-
-var _main = __webpack_require__(54);
-
-var _player = __webpack_require__(55);
-
-var _userLibrary = __webpack_require__(330);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var THREE = __webpack_require__(83);
-var OrbitControls = __webpack_require__(326);
-var THREEx = __webpack_require__(327);
-var TWEEN = __webpack_require__(328);
-
-exports.default = function () {
-	var AudioSphere = function () {
-		function AudioSphere() {
-			_classCallCheck(this, AudioSphere);
-
-			this.loadInitialState();
-			this.loadScene();
-			this.loadRenderer();
-			this.loadCamera();
-			this.loadControls();
-			this.loadDomEvents();
-
-			this.sceneRender = this.sceneRender.bind(this);
-
-			// for public API
-			this.renderAllPlaylists = this.renderAllPlaylists.bind(this);
-			this.switchToAll = this.switchToAll.bind(this);
-			this.switchWorld = this.switchWorld.bind(this);
-			this.selectFromSideNav = this.selectFromSideNav.bind(this);
-		}
-
-		/*========== LOAD METHODS ==========*/
-
-		_createClass(AudioSphere, [{
-			key: 'loadInitialState',
-			value: function loadInitialState() {
-				this.allObjects = [];
-				this.songHash = {};
-				this.playlistCluster = {};
-
-				this.currentSync = null;
-				this.currentWorld = {
-					sphere: {},
-					isFogged: true
-				};
-				this.currentRenderer = null;
-
-				this.center = {
-					songObject: null,
-					isOccupied: false
-				};
-
-				this.isAll = false;
-			}
-		}, {
-			key: 'loadRenderer',
-			value: function loadRenderer() {
-				this.renderer = new THREE.WebGLRenderer({ antialias: false });
-				this.renderer.setClearColor(this.scene.fog.color, 0.6);
-				this.renderer.setSize(window.innerWidth, window.innerHeight);
-			}
-		}, {
-			key: 'loadCamera',
-			value: function loadCamera() {
-				this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1800);
-				this.camera.z = 100;
-				this.camera.x = 10;
-			}
-		}, {
-			key: 'loadScene',
-			value: function loadScene() {
-				this.scene = new THREE.Scene();
-				this.scene.fog = new THREE.FogExp2(0x4C5760, 0.0005);
-			}
-		}, {
-			key: 'loadControls',
-			value: function loadControls() {
-				this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-				this.controls.enableDamping = true;
-				this.controls.dampingFactor = 0.25;
-				this.controls.enableZoom = true;
-			}
-		}, {
-			key: 'loadDomEvents',
-			value: function loadDomEvents() {
-				this.domEvents = new THREEx.DomEvents(this.camera, this.renderer.domElement);
-			}
-		}, {
-			key: 'loadSettings',
-			value: function loadSettings() {
-				var _this = this;
-
-				$('#canvas').append(this.renderer.domElement);
-
-				window.addEventListener('resize', function () {
-					_this.renderer.setSize(window.innerWidth, window.innerHeight);
-					_this.camera.aspect = window.innerWidth / window.innerHeight;
-					_this.camera.updateProjectionMatrix();
-				});
-
-				// load materialize css controls
-				$('.collapsible').collapsible();
-				$(".button-collapse").sideNav({ draggable: true });
-				$(".dropdown-button").dropdown();
-			}
-
-			/*========== DEFINE SCENE RENDER METHOD ==========*/
-
-		}, {
-			key: 'sceneRender',
-			value: function sceneRender() {
-				this.currentRenderer = requestAnimationFrame(this.sceneRender);
-				this.renderer.render(this.scene, this.camera);
-
-				if (_main.AUDIO.ended) {
-					this.shuffleFromCurrent();
-				}
-
-				TWEEN.update();
-
-				this.allObjects.forEach(function (shape) {
-					shape.rotation.x += 0.005;
-					shape.rotation.y += 0.005;
-				});
-			}
-
-			/*========== CREATE SONG OBJECTS AND PLAYLISTS ==========*/
-
-		}, {
-			key: 'renderAllPlaylists',
-			value: function renderAllPlaylists(playlists) {
-				if (this.allObjects.length > 0) this.restartScene();
-
-				for (var i = 0; i < playlists.length; i++) {
-					var phi = Math.acos(-1 + 2 * i / playlists.length);
-					var theta = Math.sqrt(playlists.length * Math.PI) * phi;
-					var nucleus = [20 * playlists.length * Math.cos(theta) * Math.sin(phi) + 10, 20 * playlists.length * Math.sin(theta) * Math.sin(phi), 20 * playlists.length * Math.cos(phi)];
-					this.createPlaylistObject(playlists[i], nucleus);
-				}
-
-				this.loadSettings();
-				this.sceneRender();
-			}
-		}, {
-			key: 'createPlaylistObject',
-			value: function createPlaylistObject(playlist, nucleus) {
-				this.playlistCluster[playlist.id] = {
-					cells: {},
-					nucleus: nucleus,
-					currentCenter: null,
-					playlistId: playlist.id
-				};
-
-				var songList = playlist.songs;
-
-				for (var i = 0; i < songList.length; i++) {
-					var _songObject$position;
-
-					var currentSong = songList[i].track;
-					var phi = Math.acos(-1 + 2 * i / playlist.tracks.total);
-					var theta = Math.sqrt(playlist.tracks.total * Math.PI) * phi;
-
-					var position = [65 * Math.cos(theta) * Math.sin(phi) + nucleus[0], 65 * Math.sin(theta) * Math.sin(phi) + nucleus[1], 65 * Math.cos(phi) + nucleus[2]];
-
-					var songObject = this.createSongObject(currentSong, nucleus, playlist.id);
-					(_songObject$position = songObject.position).set.apply(_songObject$position, position);
-					songObject.startingPosition = position;
-
-					this.playlistCluster[playlist.id].cells[currentSong.id] = songObject;
-
-					this.scene.add(songObject);
-				}
-			}
-		}, {
-			key: 'createSongObject',
-			value: function createSongObject(song, nucleus, playlistId) {
-				var _this2 = this;
-
-				var geometry = new THREE.IcosahedronGeometry(3, 0);
-				var material = new THREE.MeshBasicMaterial({ wireframe: true });
-				var songObject = new THREE.Mesh(geometry, material);
-
-				songObject.song = song;
-				songObject.nucleus = nucleus;
-				songObject.playlistId = playlistId;
-				this.domEvents.addEventListener(songObject, 'click', function (event) {
-					return _this2.centerSelect(event.target);
-				});
-
-				this.allObjects.push(songObject);
-				this.songHash[song.id] = songObject;
-				return songObject;
-			}
-
-			/*========== CENTER ACTIONS ==========*/
-
-		}, {
-			key: 'centerAll',
-			value: function centerAll() {
-				this.isAll = true;
-				this.controls.target.set(0, 0, 0);
-				this.allObjects.forEach(this.centerAllAnimation, this);
-			}
-		}, {
-			key: 'unCenterAll',
-			value: function unCenterAll() {
-				var _this3 = this;
-
-				this.isAll = false;
-				this.allObjects.forEach(function (songObject) {
-					songObject.nucleus = _this3.playlistCluster[songObject.playlistId].nucleus;
-					songObject.startingPosition = songObject.originalStartingPosition;
-					_this3.uncenterAnimation(songObject);
-				});
-			}
-		}, {
-			key: 'centerSong',
-			value: function centerSong(songObject) {
-				if (this.center.isOccupied) {
-					this.uncenterAnimation(this.center.songObject);
-				}
-				this.center.songObject = songObject;
-				this.center.isOccupied = true;
-				this.centerAnimation(songObject);
-			}
-		}, {
-			key: 'uncenterSong',
-			value: function uncenterSong(songObject) {
-				this.uncenterAnimation(this.center.songObject);
-				clearInterval(this.currentSync);
-				_store2.default.dispatch((0, _player.removeCurrentSong)());
-				this.center.isOccupied = false;
-			}
-		}, {
-			key: 'centerSelect',
-			value: function centerSelect(songObject) {
-				if (!this.isAll && this.currentWorld.sphere.playlistId !== songObject.playlistId) {
-					_store2.default.dispatch((0, _userLibrary.setCurrentPlaylist)(songObject.playlistId, true));
-				}
-				clearInterval(this.currentSync);
-
-				if (songObject === this.center.songObject) {
-					_store2.default.dispatch((0, _player.removeCurrentSong)());
-					this.uncenterSong(songObject);
-				} else {
-					this.playbackSource(songObject.song);
-					this.centerSong(songObject);
-				}
-			}
-
-			/*========== CENTERING ANIMATIONS ==========*/
-
-		}, {
-			key: 'centerAnimation',
-			value: function centerAnimation(object) {
-				new TWEEN.Tween(object.position).to({
-					x: object.nucleus[0],
-					y: object.nucleus[1],
-					z: object.nucleus[2]
-				}, 500).easing(TWEEN.Easing.Circular.Out).start();
-			}
-		}, {
-			key: 'uncenterAnimation',
-			value: function uncenterAnimation(object) {
-				new TWEEN.Tween(object.position).to({
-					x: object.startingPosition[0],
-					y: object.startingPosition[1],
-					z: object.startingPosition[2]
-				}, 1000).easing(TWEEN.Easing.Sinusoidal.Out).start();
-			}
-		}, {
-			key: 'centerAllAnimation',
-			value: function centerAllAnimation(object, i) {
-				object.originalStartingPosition = object.startingPosition;
-				object.nucleus = [0, 0, 0];
-
-				var phi = Math.acos(-1 + 2 * i / this.allObjects.length);
-				var theta = Math.sqrt(this.allObjects.length * Math.PI) * phi;
-
-				var position = [120 * Math.cos(theta) * Math.sin(phi), 120 * Math.sin(theta) * Math.sin(phi), 120 * Math.cos(phi)];
-
-				new TWEEN.Tween(object.position).to({
-					x: position[0],
-					y: position[1],
-					z: position[2]
-				}, 1500).easing(TWEEN.Easing.Sinusoidal.InOut).start();
-
-				object.startingPosition = position;
-			}
-
-			/*========== AUDIO METHODS ==========*/
-
-		}, {
-			key: 'playbackSource',
-			value: function playbackSource(song) {
-				var _this4 = this;
-
-				_main.AUDIO.src = song.preview_url;
-
-				_store2.default.dispatch((0, _player.setCurrentSong)(song)).then(function () {
-					_this4.syncObjectToSong(_store2.default.getState().player.currentSongFeatures);
-				});
-			}
-		}, {
-			key: 'shuffleFromCurrent',
-			value: function shuffleFromCurrent() {
-				if (this.isAll) {
-					this.centerSelect(this.allObjects[Math.floor(Math.random(this.allObjects.length))]);
-				} else {
-					var songIds = Object.keys(this.currentWorld.sphere.cells);
-					var randomObject = this.currentWorld.sphere.cells[songIds[Math.floor(Math.random() * songIds.length)]];
-					this.centerSelect(randomObject);
-				}
-			}
-		}, {
-			key: 'syncObjectToSong',
-			value: function syncObjectToSong(currentFeature) {
-				var _this5 = this;
-
-				clearInterval(this.currentSync);
-				var songIds = Object.keys(this.currentWorld.sphere.cells);
-				var tempo = currentFeature.track.tempo / 60 * 1000;
-
-				this.currentSync = setInterval(function () {
-					if (_main.AUDIO.ended || !_this5.center.isOccupied) {
-						clearInterval(_this5.currentSync);
-					} else {
-						songIds.forEach(function (songId) {
-							var shape = _this5.currentWorld.sphere.cells[songId];
-							if (shape) _this5.pulseObject(shape);
-							// beatRotation(shape, tempo/6)
-						});
-					}
-				}, tempo, songIds);
-			}
-
-			/*========== AUDIO PLAYBACK ANIMATIONS ==========*/
-
-		}, {
-			key: 'beatRotation',
-			value: function beatRotation(songObject, tempo) {
-				new TWEEN.Tween(songObject.rotation).to({
-					x: songObject.rotation.x + 0.7,
-					y: songObject.rotation.y + 0.7
-				}, tempo).start();
-			}
-		}, {
-			key: 'pulseObject',
-			value: function pulseObject(songObject) {
-				var originalSize = Object.assign({}, songObject.scale);
-				var targetSize = {
-					x: originalSize.x + 0.07,
-					y: originalSize.y + 0.07,
-					z: originalSize.z + 0.07
-				};
-
-				new TWEEN.Tween(songObject.scale).to(targetSize, 200).easing(TWEEN.Easing.Sinusoidal.Out).chain(new TWEEN.Tween(songObject.scale).to(originalSize, 100)).start();
-			}
-
-			/*========== SIDENAV METHOD ==========*/
-
-		}, {
-			key: 'selectFromSideNav',
-			value: function selectFromSideNav(songId) {
-				var fromAll = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-
-				fromAll ? this.centerSelect(this.songHash[songId]) : this.centerSelect(this.currentWorld.sphere.cells[songId]);
-			}
-
-			/*========== CAMERA/PLAYLIST SWITCH METHODS ==========*/
-
-		}, {
-			key: 'switchToAll',
-			value: function switchToAll() {
-				this.isAll ? this.unCenterAll() : this.centerAll();
-			}
-		}, {
-			key: 'switchWorld',
-			value: function switchWorld(playlistId) {
-				var _controls$target;
-
-				if (this.isAll) this.unCenterAll();
-				this.currentWorld.sphere = this.playlistCluster[playlistId];
-				(_controls$target = this.controls.target).set.apply(_controls$target, _toConsumableArray(this.currentWorld.sphere.nucleus));
-			}
-
-			/*========== GARBAGE COLLECTION !NEEDS WORK! ==========*/
-
-		}, {
-			key: 'restartScene',
-			value: function restartScene() {
-				var _this6 = this;
-
-				if (this.isAll) $('.collapsible').collapsible('close', 0);
-
-				this.allObjects.forEach(function (songObject) {
-					_this6.scene.remove(songObject);
-					songObject.geometry.dispose();
-					songObject.material.dispose();
-					songObject.song = null;
-					songObject.nucleus = null;
-					songObject.playlistId = null;
-					songObject = null;
-				}, this);
-				this.allObjects.splice(0);
-
-				this.loadInitialState();
-				cancelAnimationFrame(this.currentRenderer);
-				$('canvas').remove();
-			}
-		}]);
-
-		return AudioSphere;
-	}();
-
-	var _ref = new AudioSphere(),
-	    renderAllPlaylists = _ref.renderAllPlaylists,
-	    selectFromSideNav = _ref.selectFromSideNav,
-	    switchToAll = _ref.switchToAll,
-	    switchWorld = _ref.switchWorld;
-
-	// PUBLIC API
-
-
-	return {
-		renderAllPlaylists: renderAllPlaylists,
-		selectFromSideNav: selectFromSideNav,
-		switchToAll: switchToAll,
-		switchWorld: switchWorld
-	};
-}();
 
 /***/ })
 /******/ ]);

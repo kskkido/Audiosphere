@@ -369,11 +369,11 @@ export default (function() {
 
 			this.allObjects.forEach(songObject => {
 				this.scene.remove(songObject)
-				songObject.geometry.dispose()
-				songObject.material.dispose()
 				songObject.song = null
 				songObject.nucleus = null
 				songObject.playlistId = null
+				songObject.geometry.dispose()
+				songObject.material.dispose()
 				songObject = null
 			}, this)
 			this.allObjects.splice(0)
