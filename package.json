@@ -16,7 +16,6 @@
     "build-watch": "npm run build -- -w",
     "build-dev": "cross-env NODE_ENV=development npm run build-watch",
     "build-branch": "bin/build-branch.sh",
-    "build-css": "node-sass --include-path scss public/scss/main.scss public/stylesheets/main.css",
     "start": "node server/start.js",
     "start-watch": "nodemon server/start.js --watch server --watch db --watch index.js --watch package.json",
     "start-dev": "cross-env NODE_ENV=development npm run start-watch",
@@ -25,8 +24,7 @@
     "seed": "node db/seed.js",
     "deploy-heroku": "bin/deploy-heroku.sh",
     "lint": "esw . --ignore-path .gitignore --ext '.js,.jsx'",
-    "lint-watch": "npm run lint -- -w",
-    "prepush": "npm run lint && npm run test"
+    "lint-watch": "npm run lint -- -w"
   },
   "repository": {
     "type": "git",
@@ -104,6 +102,7 @@
     "eslint-plugin-react": "^6.10.3",
     "eslint-plugin-standard": "^3.0.1",
     "eslint-watch": "^3.1.0",
+    "husky": "^0.13.3",
     "mocha": "^3.1.2",
     "nodemon": "^1.11.0",
     "supertest": "^3.0.0",
