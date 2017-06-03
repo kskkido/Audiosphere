@@ -371,7 +371,10 @@ export default (function() {
 				this.scene.remove(songObject)
 				songObject.geometry.dispose()
 				songObject.material.dispose()
-				songObject = undefined
+				songObject.song = null
+				songObject.nucleus = null
+				songObject.playlistId = null
+				songObject = null
 			}, this)
 			this.allObjects.splice(0)
 
