@@ -88,7 +88,7 @@ if (module === require.main) {
   //
   // https://nodejs.org/api/modules.html#modules_accessing_the_main_module
   const server = app.listen(
-    pkg.port,
+    pkg.port || 3000,
     () => {
       console.log(`--- Started HTTP Server for ${pkg.name} ---`)
       const { address, port } = server.address()
