@@ -53722,11 +53722,11 @@ exports.default = function () {
 
 				this.allObjects.forEach(function (songObject) {
 					_this6.scene.remove(songObject);
-					songObject.geometry.dispose();
-					songObject.material.dispose();
 					songObject.song = null;
 					songObject.nucleus = null;
 					songObject.playlistId = null;
+					songObject.geometry.dispose();
+					songObject.material.dispose();
 					songObject = null;
 				}, this);
 				this.allObjects.splice(0);
@@ -59704,8 +59704,8 @@ var Navbar = function Navbar(_ref) {
       null,
       _react2.default.createElement(
         'a',
-        { onClick: function onClick(event) {
-            fetchPlaylists(true);
+        { onClick: function onClick() {
+            restartRender();fetchPlaylists(true);
           } },
         'Load Featured Playlists'
       )
@@ -59718,8 +59718,8 @@ var Navbar = function Navbar(_ref) {
       null,
       _react2.default.createElement(
         'a',
-        { onClick: function onClick(event) {
-            fetchPlaylists();
+        { onClick: function onClick() {
+            restartRender();fetchPlaylists();
           } },
         'Load Your Playlists'
       )

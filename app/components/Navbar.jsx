@@ -28,13 +28,13 @@ const Navbar = ({ currentPlaylist, fetchPlaylists, login, logout, playlists, res
 
   function getFeaturedPlaylists() {
     return (
-      <li><a onClick={(event) => { fetchPlaylists(true)} }>Load Featured Playlists</a></li>
+      <li><a onClick={() => {restartRender(); fetchPlaylists(true)} }>Load Featured Playlists</a></li>
     )
   }
 
   function getUserPlaylists() {
     return (
-      <li><a onClick={(event) => { fetchPlaylists()} }>Load Your Playlists</a></li>
+      <li><a onClick={() => {restartRender(); fetchPlaylists()} }>Load Your Playlists</a></li>
     )
   }
 
