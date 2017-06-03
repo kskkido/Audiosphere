@@ -1,6 +1,7 @@
 const app = require('APP'), {env} = app
 const debug = require('debug')(`${app.name}:auth`)
 const passport = require('passport')
+const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET } = require('../.secret.json')
 
 const db = require('APP/db')
 const OAuth = db.model('oauths'),

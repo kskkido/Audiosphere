@@ -52847,8 +52847,8 @@ var Login = exports.Login = function Login(_ref) {
       _react2.default.createElement(
         "a",
         {
-          href: "api/auth/login/spotify",
-          onClick: login },
+          href: "api/auth/login/spotify"
+        },
         "Login with Spotify"
       )
     )
@@ -79262,6 +79262,7 @@ var fetchFeaturedPlaylists = exports.fetchFeaturedPlaylists = function fetchFeat
         }, [])));
         dispatch(fetched(playlists));
         dispatch(setCurrentPlaylist(playlists[0].id));
+        $('.collapsible').collapsible('close', 0);
       });
     }).catch(function (err) {
       return console.error('Failed to initialize ', err);
@@ -79708,6 +79709,8 @@ exports.default = function () {
 			value: function restartScene() {
 				var _this6 = this;
 
+				if (this.isAll) $('.collapsible').collapsible('close', 0);
+
 				this.allObjects.forEach(function (songObject) {
 					_this6.scene.remove(songObject);
 					songObject.geometry.dispose();
@@ -79715,6 +79718,7 @@ exports.default = function () {
 					songObject = undefined;
 				}, this);
 				this.allObjects.splice(0);
+
 				this.loadInitialState();
 				cancelAnimationFrame(this.currentRenderer);
 				$('canvas').remove();

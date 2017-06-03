@@ -116,6 +116,7 @@ export const fetchFeaturedPlaylists = user => dispatch => {
       dispatch(addSongs(res.reduce((total, current) => [...total, ...current], [])))
       dispatch(fetched(playlists))
       dispatch(setCurrentPlaylist(playlists[0].id))
+      $('.collapsible').collapsible('close', 0)
     })
   })
   .catch(err => console.error('Failed to initialize ', err))

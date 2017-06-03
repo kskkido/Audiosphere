@@ -365,6 +365,8 @@ export default (function() {
 		/*========== GARBAGE COLLECTION !NEEDS WORK! ==========*/
 
 		restartScene() {
+			if (this.isAll) $('.collapsible').collapsible('close', 0)
+
 			this.allObjects.forEach(songObject => {
 				this.scene.remove(songObject)
 				songObject.geometry.dispose()
@@ -372,6 +374,7 @@ export default (function() {
 				songObject = undefined
 			}, this)
 			this.allObjects.splice(0)
+
 			this.loadInitialState()
 			cancelAnimationFrame(this.currentRenderer)
 			$('canvas').remove()

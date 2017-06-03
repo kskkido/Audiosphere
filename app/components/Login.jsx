@@ -6,7 +6,7 @@ export const Login = ({ login }) => {
         <div className="login">
           <a
             href="api/auth/login/spotify"
-            onClick={login}>
+            >
             Login with Spotify
           </a>
         </div>
