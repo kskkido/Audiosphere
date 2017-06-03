@@ -1,8 +1,11 @@
 const app = require('APP'), {env} = app
 const debug = require('debug')(`${app.name}:auth`)
 const passport = require('passport')
+const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET } = require('../.secret.json')
 
-const {User, OAuth} = require('APP/db')
+const db = require('APP/db')
+const OAuth = db.model('oauths'),
+  User = db.model('users')
 const auth = require('express').Router()
 
 /*************************
@@ -31,48 +34,17 @@ const auth = require('express').Router()
  * variables with your hosting provider.
  **/
 
-// Facebook needs the FACEBOOK_CLIENT_ID and FACEBOOK_CLIENT_SECRET
-// environment variables.
 OAuth.setupStrategy({
-  provider: 'facebook',
-  strategy: require('passport-facebook').Strategy,
+  provider: 'spotify',
+  strategy: require('passport-spotify').Strategy,
   config: {
-    clientID: env.FACEBOOK_CLIENT_ID,
-    clientSecret: env.FACEBOOK_CLIENT_SECRET,
-    callbackURL: `${app.baseUrl}/api/auth/login/facebook`,
+    clientID: SPOTIFY_CLIENT_ID,
+    clientSecret: SPOTIFY_CLIENT_SECRET,
+    callbackURL: `${app.baseUrl}/api/auth/login/spotify`,
   },
   passport
 })
 
-// Google needs the GOOGLE_CLIENT_SECRET AND GOOGLE_CLIENT_ID
-// environment variables.
-OAuth.setupStrategy({
-  provider: 'google',
-  strategy: require('passport-google-oauth').OAuth2Strategy,
-  config: {
-    clientID: env.GOOGLE_CLIENT_ID,
-    clientSecret: env.GOOGLE_CLIENT_SECRET,
-    callbackURL: `${app.baseUrl}/api/auth/login/google`,
-  },
-  passport
-})
-
-// Github needs the GITHUB_CLIENT_ID AND GITHUB_CLIENT_SECRET
-// environment variables.
-OAuth.setupStrategy({
-  provider: 'github',
-  strategy: require('passport-github2').Strategy,
-  config: {
-    clientID: env.GITHUB_CLIENT_ID,
-    clientSecret: env.GITHUB_CLIENT_SECRET,
-    callbackURL: `${app.baseUrl}/api/auth/login/github`,
-  },
-  passport
-})
-
-// Other passport configuration:
-// Passport review in the Week 6 Concept Review:
-// https://docs.google.com/document/d/1MHS7DzzXKZvR6MkL8VWdCxohFJHGgdms71XNLIET52Q/edit?usp=sharing
 passport.serializeUser((user, done) => {
   done(null, user.id)
 })
@@ -127,15 +99,18 @@ auth.post('/login/local', passport.authenticate('local', {successRedirect: '/'})
 
 // GET requests for OAuth login:
 // Register this route as a callback URL with OAuth provider
-auth.get('/login/:strategy', (req, res, next) =>
-  passport.authenticate(req.params.strategy, {
-    scope: 'email', // You may want to ask for additional OAuth scopes. These are
-                    // provider specific, and let you access additional data (like
+auth.get('/login/:strategy', (req, res, next) => {
+  return passport.authenticate(req.params.strategy, {
+    scope: 'playlist-read-private streaming user-read-email', // You may want to ask for additional OAuth scopes. These are
+    successRedirect: '/api/users/playlist' // provider specific, and let you access additional data (like
                     // their friends or email), or perform actions on their behalf.
-    successRedirect: '/',
     // Specify other config here
   })(req, res, next)
-)
+})
+
+// Google authentication and login
+// app.get('/auth/google', passport.authenticate('google', { scope: 'email' }));
+//
 
 auth.post('/logout', (req, res) => {
   req.logout()

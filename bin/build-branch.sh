@@ -13,7 +13,6 @@ off='\033[0m'
 
 echoed() {
     echo "${blue}${*}${off}"
-    $*
 }
 
 if [[ $(git status --porcelain 2> /dev/null | grep -v '$\?\?' | tail -n1) != "" ]]; then

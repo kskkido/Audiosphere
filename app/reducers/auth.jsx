@@ -1,4 +1,7 @@
 import axios from 'axios'
+import {createUserConfig} from './utils'
+import {fetchInitialData} from './userLibrary'
+export let customAxios = null
 
 const reducer = (state=null, action) => {
   switch (action.type) {
@@ -31,7 +34,9 @@ export const whoami = () =>
     axios.get('/api/auth/whoami')
       .then(response => {
         const user = response.data
+        customAxios = createUserConfig(user)
         dispatch(authenticated(user))
+        dispatch(fetchInitialData(user))
       })
       .catch(failed => dispatch(authenticated(null)))
 

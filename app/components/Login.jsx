@@ -1,15 +1,18 @@
 import React from 'react'
 
-export const Login = ({ login }) => (
-  <form onSubmit={evt => {
-    evt.preventDefault()
-    login(evt.target.username.value, evt.target.password.value)
-  } }>
-    <input name="username" />
-    <input name="password" type="password" />
-    <input type="submit" value="Login" />
-  </form>
-)
+export const Login = ({ login }) => {
+  return (
+      <div className="initial-overlay">
+        <div className="login">
+          <a
+            href="api/auth/login/spotify"
+            onClick={login}>
+            Login with Spotify
+          </a>
+        </div>
+      </div>
+  )
+}
 
 import {login} from 'APP/app/reducers/auth'
 import {connect} from 'react-redux'
