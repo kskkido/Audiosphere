@@ -1,6 +1,6 @@
 import axios from 'axios'
 import {createUserConfig} from './utils'
-import {fetchInitialData} from './userLibrary'
+import {fetchPlaylists} from './userLibrary'
 export let customAxios = null
 
 const reducer = (state=null, action) => {
@@ -36,7 +36,7 @@ export const whoami = () =>
         const user = response.data
         customAxios = createUserConfig(user)
         dispatch(authenticated(user))
-        dispatch(fetchInitialData(user))
+        dispatch(fetchPlaylists(false))
       })
       .catch(failed => dispatch(authenticated(null)))
 

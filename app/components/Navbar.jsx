@@ -1,10 +1,10 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { removeCurrentSong } from 'APP/app/reducers/player'
-import { fetchFeaturedPlaylists, fetchInitialData, restartRender } from 'APP/app/reducers/userLibrary'
+import { fetchPlaylists, restartRender } from 'APP/app/reducers/userLibrary'
 import { login, logout } from 'APP/app/reducers/auth'
 
-const Navbar = ({ currentPlaylist, fetchFeatured, fetchInitialData, login, logout, playlists, restartRender, user, userPlaylist }) => {
+const Navbar = ({ currentPlaylist, fetchPlaylists, login, logout, playlists, restartRender, user, userPlaylist }) => {
 
   function renderLogout() {
     return <li><a onClick={() => {
@@ -28,13 +28,13 @@ const Navbar = ({ currentPlaylist, fetchFeatured, fetchInitialData, login, logou
 
   function getFeaturedPlaylists() {
     return (
-      <li><a onClick={(event) => { fetchFeatured()} }>Load Featured Playlists</a></li>
+      <li><a onClick={(event) => { fetchPlaylists(true)} }>Load Featured Playlists</a></li>
     )
   }
 
   function getUserPlaylists() {
     return (
-      <li><a onClick={(event) => { fetchInitialData()} }>Load Your Playlists</a></li>
+      <li><a onClick={(event) => { fetchPlaylists()} }>Load Your Playlists</a></li>
     )
   }
 
@@ -77,13 +77,9 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  fetchFeatured: () => {
+  fetchPlaylists: (featured = false) => {
     dispatch(removeCurrentSong())
-    dispatch(fetchFeaturedPlaylists())
-  },
-  fetchInitialData: () => {
-    dispatch(removeCurrentSong())
-    dispatch(fetchInitialData())
+    dispatch(fetchPlaylists(featured))
   },
   logout: () => dispatch(logout()),
   login: () => dispatch(login()),
