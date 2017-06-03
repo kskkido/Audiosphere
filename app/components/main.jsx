@@ -5,13 +5,12 @@ import { Login } from './Login'
 import Navbar from './Navbar'
 import SideBar from './sidebar'
 
-const Main = ({ children, currentSong, user }) => {
+const Main = ({ currentSong, user }) => {
   return (
     <div id='home'>
         <Navbar />
         <div className="non-across">
   		    <SideBar />
-  	      { children }
         </div>
         <div className="song-card">
           <div className="song-snippet z-depth-2">
@@ -22,9 +21,9 @@ const Main = ({ children, currentSong, user }) => {
   )
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   user: state.auth,
-  currentSong: state.player.currentSong
+  currentSong: state.player.currentSong,
 })
 
 const mapDispatchToProps = null

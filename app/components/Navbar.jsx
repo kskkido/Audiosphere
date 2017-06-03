@@ -1,8 +1,7 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { removeCurrentSong } from '../reducers/player'
-import { fetchFeaturedPlaylists, fetchInitialData, restartRender } from '../reducers/playlists'
-import { init, sceneRender, restartScene } from '../canvasMaterial/songShape'
+import { removeCurrentSong } from 'APP/app/reducers/player'
+import { fetchFeaturedPlaylists, fetchInitialData, restartRender } from 'APP/app/reducers/userLibrary'
 import { login, logout } from 'APP/app/reducers/auth'
 
 const Navbar = ({ currentPlaylist, fetchFeatured, fetchInitialData, login, logout, playlists, restartRender, user, userPlaylist }) => {
@@ -10,7 +9,6 @@ const Navbar = ({ currentPlaylist, fetchFeatured, fetchInitialData, login, logou
   function renderLogout() {
     return <li><a onClick={() => {
       restartRender()
-      restartScene()
       logout()
     } }>Logout</a></li>
   }
@@ -30,13 +28,13 @@ const Navbar = ({ currentPlaylist, fetchFeatured, fetchInitialData, login, logou
 
   function getFeaturedPlaylists() {
     return (
-      <li><a onClick={(event) => {; restartScene(); fetchFeatured()} }>Load Featured Playlists</a></li>
+      <li><a onClick={(event) => { fetchFeatured()} }>Load Featured Playlists</a></li>
     )
   }
 
   function getUserPlaylists() {
     return (
-      <li><a onClick={(event) => {; restartScene(); fetchInitialData()} }>Load Your Playlists</a></li>
+      <li><a onClick={(event) => { fetchInitialData()} }>Load Your Playlists</a></li>
     )
   }
 
@@ -50,7 +48,7 @@ const Navbar = ({ currentPlaylist, fetchFeatured, fetchInitialData, login, logou
     <div className="wrapper nav-wrapper">
       <a href="#" data-activates="slide-out" className="button-collapse left"><i className="material-icons">menu</i></a>
       <ul id="nav-mobile" className="right" style={{marginRight: '20px'}}>
-        {user ? isLoggedIn() : null}
+        {user && playlists.length > 0 ? isLoggedIn() : null}
         {user ? renderLogout() : renderLogin()}
         <li><a style={{target: "_blank"}} href="https://www.spotify.com/us/">Spotify</a></li>
       </ul>
@@ -74,7 +72,8 @@ function renderDropdown () {
 
 const mapStateToProps = state => ({
   user: state.auth,
-  userPlaylist: state.userLibrary.userPlaylist
+  userPlaylist: state.userLibrary.userPlaylist,
+  playlists: state.userLibrary.playlists
 })
 
 const mapDispatchToProps = dispatch => ({

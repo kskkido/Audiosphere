@@ -1,8 +1,9 @@
 import axios from 'axios'
 import { createUserConfig, findById } from './utils'
-import { testAxiosInstance } from './auth'
+import { customAxios } from './auth'
 
-import { renderer } from '../canvasMaterial/songShape.js'
+import AudioSphereAPI from '../audioSphere'
+const { renderAllPlaylists, switchWorld } = AudioSphereAPI
 
 /* ============ DEFINE ACTION TYPE ============ */
 
@@ -21,7 +22,6 @@ export const fetched = playlists => ({ type: FETCH, playlists })
 export const fetchedSongs = songArr => ({type: FETCH_SONGS, songArr})
 export const setCurrentPlaylist = playlistId => ({type: SET_CURRENT_PLAYLIST, playlistId})
 export const addSongs = songs => ({type: ADD_SONGS, songs})
-export const hasRendered = () => ({type: RENDERED})
 export const restartRender = () => ({type: RESTART})
 export const changePlaylist = () => ({type: CHANGE_PLAYLIST})
 export const setToAll = () => ({type: SET_TO_ALL})
@@ -29,7 +29,6 @@ export const setToAll = () => ({type: SET_TO_ALL})
 /* ============ DEFINE REDUCER ============ */
 
 const initialState = {
-  render: false,
   userPlaylist: true,
   currentPlaylist: {},
   playlists: [],
@@ -39,20 +38,22 @@ const initialState = {
 export default (state=initialState, action) => {
   switch (action.type) {
   case FETCH:
+    renderAllPlaylists(action.playlists)
     return Object.assign({}, state, {playlists: action.playlists})
 
   case SET_CURRENT_PLAYLIST:
     if (state.currentPlaylist.id) {
+      // ISSUE HERE 
+      console.log(state.currentPlaylist.id)
       document.getElementById(state.currentPlaylist.id).classList.remove("current-playlist", 'active')
     }
     document.getElementById(action.playlistId).classList.add("current-playlist")
+
+    switchWorld(action.playlistId)
     return Object.assign({}, state, {currentPlaylist: findById(state.playlists, action.playlistId)})
 
   case ADD_SONGS:
     return Object.assign({}, state, {allSongs: state.allSongs.concat(action.songs)})
-
-  case RENDERED:
-    return Object.assign({}, state, {render: true})
 
   case RESTART:
     return initialState
@@ -86,19 +87,17 @@ export default (state=initialState, action) => {
 // }
 
 export const fetchInitialData = user => dispatch => {
-  dispatch(restartRender())
-  testAxiosInstance.get('https://api.spotify.com/v1/me/playlists/?limit=40')
+  customAxios.get('https://api.spotify.com/v1/me/playlists/?limit=40')
   .then(res => res.data.items)
   .then(playlists => {
     axios.all(playlists.map((playlist, i, arr) => {
-      return testAxiosInstance.get(playlist.tracks.href)
+      return customAxios.get(playlist.tracks.href)
       .then(res => arr[i].songs = res.data.items)
     }))
     .then((res) => {
       dispatch(addSongs(res.reduce((total, current) => [...total, ...current], [])))
       dispatch(fetched(playlists))
       dispatch(setCurrentPlaylist(playlists[0].id))
-      document.getElementById('canvas').appendChild(renderer.domElement)
     })
   })
   .catch(err => console.error('Failed to initialize ', err))
@@ -106,11 +105,11 @@ export const fetchInitialData = user => dispatch => {
 
 export const fetchFeaturedPlaylists = user => dispatch => {
   dispatch(changePlaylist())
-  testAxiosInstance.get('https://api.spotify.com/v1/browse/featured-playlists/?limit=20')
+  customAxios.get('https://api.spotify.com/v1/browse/featured-playlists/?limit=20')
   .then(res => res.data.playlists.items)
   .then(playlists => {
     axios.all(playlists.map((playlist, i, arr) => {
-      return testAxiosInstance.get(playlist.tracks.href)
+      return customAxios.get(playlist.tracks.href)
       .then(res => arr[i].songs = res.data.items)
     }))
     .then((res) => {
@@ -122,6 +121,24 @@ export const fetchFeaturedPlaylists = user => dispatch => {
   .catch(err => console.error('Failed to initialize ', err))
 }
 
+// export const fetchPlaylists = (user, featured = false) => dispatch => {
+//   dispatch(changePlaylist())
+//   let targetUrl = featured ? 'https://api.spotify.com/v1/browse/featured-playlists/?limit=20' : 'https://api.spotify.com/v1/me/playlists/?limit=40'
+//   customAxios.get(targetUrl)
+//   .then(res => res.data.playlists.items)
+//   .then(playlists => {
+//     axios.all(playlists.map((playlist, i, arr) => {
+//       return customAxios.get(playlist.tracks.href)
+//       .then(res => arr[i].songs = res.data.items)
+//     }))
+//     .then((res) => {
+//       dispatch(addSongs(res.reduce((total, current) => [...total, ...current], [])))
+//       dispatch(fetched(playlists))
+//       dispatch(setCurrentPlaylist(playlists[0].id))
+//     })
+//   })
+//   .catch(err => console.error('Failed to initialize ', err))
+// }
 
 
 // fetch song everytime a dom object is clicked

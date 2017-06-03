@@ -1,8 +1,9 @@
 import React from 'react'
-import { fetchPlaylists, fetchPlaylistSongs, neutralView, setCurrentPlaylist, setToAll } from '../reducers/playlists'
-import { findFromAll, findBySongId, init, sceneRender, switchToAll } from '../canvasMaterial/songShape'
-import UserControls from './userControls'
-import { findById } from '../reducers/utils'
+import { fetchPlaylists, fetchPlaylistSongs, neutralView, setCurrentPlaylist, setToAll } from '../reducers/userLibrary'
+import { findById } from 'APP/app/reducers/utils'
+
+import AudioSphereAPI from 'APP/app/audioSphere'
+const { selectFromAll, selectFromPlaylist, selectFromSideNav, switchToAll } = AudioSphereAPI
 
 const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, setToAll, user }) => {
 
@@ -10,7 +11,7 @@ const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, set
     return playlists.map((playlist, i) => {
       return (
         <li key={`${i}`} id={`${playlist.id}`}>
-          <a onClick={(event) => selectPlaylist(playlist.id, event)} className="collapsible-header waves-effect playlist-name" value={`${playlist.id}`}>
+          <a onClick={(event) => setCurrentPlaylist(playlist.id)} className="collapsible-header waves-effect playlist-name white-text" value={`${playlist.id}`}>
             {playlist.name}
           </a>
           <div className="collapsible-body transparent">
@@ -26,8 +27,8 @@ const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, set
   function renderPlaylistSongs(songList) {
     return songList.map((song, i) => {
       return (
-        <li onClick={() => selectSong(song.track.id)} key={`${i}`} value={`${song.track.id}`}>
-          <a className="waves-effect">{`${song.track.name} - ${song.track.artists[0].name}`}</a>
+        <li onClick={() => selectFromSideNav(song.track.id)} key={`${i}`} value={`${song.track.id}`}>
+          <a className="waves-effect white-text">{`${song.track.name} - ${song.track.artists[0].name}`}</a>
         </li>
       )
     })
@@ -36,34 +37,22 @@ const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, set
   function renderAllSongs() {
     return allSongs.map((song, i) => {
       return (
-        <li onClick={() => selectFromAll(song.track.id)} key={`${i}`} value={`${song.track.id}`}>
-          <a className="waves-effect">{`${song.track.name} - ${song.track.artists[0].name}`}</a>
+        <li onClick={() => selectFromSideNav(song.track.id, true)} key={`${i}`} value={`${song.track.id}`}>
+          <a className="waves-effect white-text">{`${song.track.name} - ${song.track.artists[0].name}`}</a>
         </li>
       )
     })
   }
 
-  function selectPlaylist(playlistId, event) {
-    setCurrentPlaylist(playlistId)
-  }
-
-  function selectSong(songId) {
-    findBySongId(songId, currentPlaylist)
-  }
-
-  function selectFromAll(songId) {
-    findFromAll(songId)
-  }
-
   return (
 
-    <div >
+    <div>
       <ul id="slide-out" className="side-nav fixed transparent">
         <ul className="collapsible" data-collapsible="accordion">
           <li>
-            <a onClick={() => {setToAll(); switchToAll()}} className="collapsible-header waves-effect">
-              All Songs
-            </a>
+            {playlists.length > 0 && <a onClick={() => {setToAll(); switchToAll()}} className="collapsible-header waves-effect">
+              <span className="white-text">All Songs</span>
+            </a>}
             <div className="collapsible-body transparent">
               <ul className="song-list">
                 {renderAllSongs()}
@@ -71,7 +60,7 @@ const Sidebar = ({ allSongs, currentPlaylist, playlists, setCurrentPlaylist, set
             </div>
           </li>
           <li>
-            <span className="sidebar-header" style={{fontSize: '23px', paddingLeft: '10px'}}>
+            <span className="sidebar-header white-text" style={{fontSize: '23px', paddingLeft: '10px'}}>
               Playlists:
             </span>
           </li>

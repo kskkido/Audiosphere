@@ -1,6 +1,6 @@
 
-import {AUDIO} from '../main'
-import {testAxiosInstance} from './auth'
+import { AUDIO } from '../main'
+import { customAxios } from './auth'
 
 const featureCache = []
 
@@ -47,7 +47,7 @@ export default (state = initialPlayerState, action) => {
 export const setCurrentSong = (song) => dispatch => {
   AUDIO.play()
   dispatch(playSong(song))
-  return testAxiosInstance(`https://api.spotify.com/v1/audio-analysis/${song.id}`)
+  return customAxios(`https://api.spotify.com/v1/audio-analysis/${song.id}`)
     .then((res) => {
       return dispatch(setFeatures(res.data))
     })
