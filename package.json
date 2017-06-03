@@ -74,7 +74,6 @@
     "redux-logger": "^2.7.0",
     "redux-thunk": "^2.1.0",
     "request": "^2.81.0",
-    "semantic-ui": "^2.2.10",
     "sequelize": "^3.24.6",
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
