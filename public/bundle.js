@@ -59815,8 +59815,8 @@ var Navbar = function Navbar(_ref) {
           null,
           _react2.default.createElement(
             'a',
-            { style: { target: "_blank" }, href: 'https://www.spotify.com/us/' },
-            'Spotify'
+            { style: { target: "_blank" }, href: 'https://github.com/kskkido/Audiosphere' },
+            'Source Code'
           )
         )
       )

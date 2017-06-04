@@ -50,7 +50,7 @@ const Navbar = ({ currentPlaylist, fetchFeatured, fetchInitialData, login, logou
       <ul id="nav-mobile" className="right" style={{marginRight: '20px'}}>
         {user && playlists.length > 0 ? isLoggedIn() : null}
         {user ? renderLogout() : renderLogin()}
-        <li><a style={{target: "_blank"}} href="https://www.spotify.com/us/">Spotify</a></li>
+        <li><a style={{target: "_blank"}} href="https://github.com/kskkido/Audiosphere">Source Code</a></li>
       </ul>
     </div>
   </nav>

@@ -21,7 +21,6 @@ router.route('/')
 router.route('/playlist')
 .get(mustBeLoggedIn,
   (req, res, next) => {
-    console.log(req.user)
     if (!req.user) {
       return res.sendStatus(404)
     }
