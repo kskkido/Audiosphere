@@ -2265,7 +2265,7 @@ var whoami = exports.whoami = function whoami() {
       var user = response.data;
       exports.customAxios = customAxios = (0, _utils.createUserConfig)(user);
       dispatch(authenticated(user));
-      dispatch((0, _userLibrary.fetchInitialData)(user));
+      dispatch((0, _userLibrary.fetchPlaylists)(false));
     }).catch(function (failed) {
       return dispatch(authenticated(null));
     });
@@ -4108,7 +4108,7 @@ module.exports = React;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.fetchFeaturedPlaylists = exports.fetchInitialData = exports.setToAll = exports.changePlaylist = exports.restartRender = exports.addSongs = exports.setCurrentPlaylist = exports.fetchedSongs = exports.fetched = undefined;
+exports.fetchPlaylists = exports.setToAll = exports.changePlaylist = exports.restartRender = exports.addSongs = exports.setCurrentPlaylist = exports.fetchedSongs = exports.fetched = undefined;
 
 var _axios = __webpack_require__(52);
 
@@ -4184,8 +4184,6 @@ exports.default = function () {
 
     case SET_CURRENT_PLAYLIST:
       if (state.currentPlaylist.id) {
-        // ISSUE HERE 
-        console.log(state.currentPlaylist.id);
         document.getElementById(state.currentPlaylist.id).classList.remove("current-playlist", 'active');
       }
       document.getElementById(action.playlistId).classList.add("current-playlist");
@@ -4214,23 +4212,13 @@ exports.default = function () {
 
 /* ============ DEFINE DISPATCHER ============ */
 
-// export const fetchPlaylists = user => dispatch => {
-//   createUserConfig(user).get('https://api.spotify.com/v1/me/playlists')
-//     .then(res => dispatch(fetched(res.data.items)))
-//     .catch(err => console.error('Failed to fetch playlist: ', err))
-// }
-//
-// export const fetchPlaylistSongs = (user, playlists) => dispatch => {
-//   const axiosInstance = createUserConfig(user)
-//   axios.all(playlists.map(playlist => axiosInstance(playlist.tracks.href)))
-//   .then(res => res.forEach(res => dispatch(fetchedSongs(res.data))))
-//   .catch(err => console.error('Failed to fetch playlist: ', err))
-// }
-
-var fetchInitialData = exports.fetchInitialData = function fetchInitialData(user) {
+var fetchPlaylists = exports.fetchPlaylists = function fetchPlaylists(featured) {
   return function (dispatch) {
-    _auth.customAxios.get('https://api.spotify.com/v1/me/playlists/?limit=40').then(function (res) {
-      return res.data.items;
+    if (featured) dispatch(changePlaylist());
+
+    var targetUrl = featured ? 'https://api.spotify.com/v1/browse/featured-playlists/?limit=20' : 'https://api.spotify.com/v1/me/playlists/?limit=40';
+    _auth.customAxios.get(targetUrl).then(function (res) {
+      return featured ? res.data.playlists.items : res.data.items;
     }).then(function (playlists) {
       _axios2.default.all(playlists.map(function (playlist, i, arr) {
         return _auth.customAxios.get(playlist.tracks.href).then(function (res) {
@@ -4248,52 +4236,6 @@ var fetchInitialData = exports.fetchInitialData = function fetchInitialData(user
     });
   };
 };
-
-var fetchFeaturedPlaylists = exports.fetchFeaturedPlaylists = function fetchFeaturedPlaylists(user) {
-  return function (dispatch) {
-    dispatch(changePlaylist());
-    _auth.customAxios.get('https://api.spotify.com/v1/browse/featured-playlists/?limit=20').then(function (res) {
-      return res.data.playlists.items;
-    }).then(function (playlists) {
-      _axios2.default.all(playlists.map(function (playlist, i, arr) {
-        return _auth.customAxios.get(playlist.tracks.href).then(function (res) {
-          return arr[i].songs = res.data.items;
-        });
-      })).then(function (res) {
-        dispatch(addSongs(res.reduce(function (total, current) {
-          return [].concat(_toConsumableArray(total), _toConsumableArray(current));
-        }, [])));
-        dispatch(fetched(playlists));
-        dispatch(setCurrentPlaylist(playlists[0].id));
-        $('.collapsible').collapsible('close', 0);
-      });
-    }).catch(function (err) {
-      return console.error('Failed to initialize ', err);
-    });
-  };
-};
-
-// export const fetchPlaylists = (user, featured = false) => dispatch => {
-//   dispatch(changePlaylist())
-//   let targetUrl = featured ? 'https://api.spotify.com/v1/browse/featured-playlists/?limit=20' : 'https://api.spotify.com/v1/me/playlists/?limit=40'
-//   customAxios.get(targetUrl)
-//   .then(res => res.data.playlists.items)
-//   .then(playlists => {
-//     axios.all(playlists.map((playlist, i, arr) => {
-//       return customAxios.get(playlist.tracks.href)
-//       .then(res => arr[i].songs = res.data.items)
-//     }))
-//     .then((res) => {
-//       dispatch(addSongs(res.reduce((total, current) => [...total, ...current], [])))
-//       dispatch(fetched(playlists))
-//       dispatch(setCurrentPlaylist(playlists[0].id))
-//     })
-//   })
-//   .catch(err => console.error('Failed to initialize ', err))
-// }
-
-
-// fetch song everytime a dom object is clicked
 
 /***/ }),
 /* 35 */
@@ -53780,11 +53722,11 @@ exports.default = function () {
 
 				this.allObjects.forEach(function (songObject) {
 					_this6.scene.remove(songObject);
-					songObject.geometry.dispose();
-					songObject.material.dispose();
 					songObject.song = null;
 					songObject.nucleus = null;
 					songObject.playlistId = null;
+					songObject.geometry.dispose();
+					songObject.material.dispose();
 					songObject = null;
 				}, this);
 				this.allObjects.splice(0);
@@ -59716,8 +59658,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var Navbar = function Navbar(_ref) {
   var currentPlaylist = _ref.currentPlaylist,
-      fetchFeatured = _ref.fetchFeatured,
-      fetchInitialData = _ref.fetchInitialData,
+      fetchPlaylists = _ref.fetchPlaylists,
       login = _ref.login,
       logout = _ref.logout,
       playlists = _ref.playlists,
@@ -59763,8 +59704,8 @@ var Navbar = function Navbar(_ref) {
       null,
       _react2.default.createElement(
         'a',
-        { onClick: function onClick(event) {
-            fetchFeatured();
+        { onClick: function onClick() {
+            restartRender();fetchPlaylists(true);
           } },
         'Load Featured Playlists'
       )
@@ -59777,8 +59718,8 @@ var Navbar = function Navbar(_ref) {
       null,
       _react2.default.createElement(
         'a',
-        { onClick: function onClick(event) {
-            fetchInitialData();
+        { onClick: function onClick() {
+            restartRender();fetchPlaylists();
           } },
         'Load Your Playlists'
       )
@@ -59855,13 +59796,11 @@ var mapStateToProps = function mapStateToProps(state) {
 
 var mapDispatchToProps = function mapDispatchToProps(dispatch) {
   return {
-    fetchFeatured: function fetchFeatured() {
+    fetchPlaylists: function fetchPlaylists() {
+      var featured = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
       dispatch((0, _player.removeCurrentSong)());
-      dispatch((0, _userLibrary.fetchFeaturedPlaylists)());
-    },
-    fetchInitialData: function fetchInitialData() {
-      dispatch((0, _player.removeCurrentSong)());
-      dispatch((0, _userLibrary.fetchInitialData)());
+      dispatch((0, _userLibrary.fetchPlaylists)(featured));
     },
     logout: function logout() {
       return dispatch((0, _auth.logout)());

@@ -43,8 +43,6 @@ export default (state=initialState, action) => {
 
   case SET_CURRENT_PLAYLIST:
     if (state.currentPlaylist.id) {
-      // ISSUE HERE 
-      console.log(state.currentPlaylist.id)
       document.getElementById(state.currentPlaylist.id).classList.remove("current-playlist", 'active')
     }
     document.getElementById(action.playlistId).classList.add("current-playlist")
@@ -73,22 +71,12 @@ export default (state=initialState, action) => {
 
 /* ============ DEFINE DISPATCHER ============ */
 
-// export const fetchPlaylists = user => dispatch => {
-//   createUserConfig(user).get('https://api.spotify.com/v1/me/playlists')
-//     .then(res => dispatch(fetched(res.data.items)))
-//     .catch(err => console.error('Failed to fetch playlist: ', err))
-// }
-//
-// export const fetchPlaylistSongs = (user, playlists) => dispatch => {
-//   const axiosInstance = createUserConfig(user)
-//   axios.all(playlists.map(playlist => axiosInstance(playlist.tracks.href)))
-//   .then(res => res.forEach(res => dispatch(fetchedSongs(res.data))))
-//   .catch(err => console.error('Failed to fetch playlist: ', err))
-// }
+export const fetchPlaylists = featured => dispatch => {
+  if (featured) dispatch(changePlaylist())
 
-export const fetchInitialData = user => dispatch => {
-  customAxios.get('https://api.spotify.com/v1/me/playlists/?limit=40')
-  .then(res => res.data.items)
+  const targetUrl = featured ? 'https://api.spotify.com/v1/browse/featured-playlists/?limit=20' : 'https://api.spotify.com/v1/me/playlists/?limit=40'
+  customAxios.get(targetUrl)
+  .then(res => featured ? res.data.playlists.items : res.data.items)
   .then(playlists => {
     axios.all(playlists.map((playlist, i, arr) => {
       return customAxios.get(playlist.tracks.href)
@@ -103,43 +91,3 @@ export const fetchInitialData = user => dispatch => {
   .catch(err => console.error('Failed to initialize ', err))
 }
 
-export const fetchFeaturedPlaylists = user => dispatch => {
-  dispatch(changePlaylist())
-  customAxios.get('https://api.spotify.com/v1/browse/featured-playlists/?limit=20')
-  .then(res => res.data.playlists.items)
-  .then(playlists => {
-    axios.all(playlists.map((playlist, i, arr) => {
-      return customAxios.get(playlist.tracks.href)
-      .then(res => arr[i].songs = res.data.items)
-    }))
-    .then((res) => {
-      dispatch(addSongs(res.reduce((total, current) => [...total, ...current], [])))
-      dispatch(fetched(playlists))
-      dispatch(setCurrentPlaylist(playlists[0].id))
-      $('.collapsible').collapsible('close', 0)
-    })
-  })
-  .catch(err => console.error('Failed to initialize ', err))
-}
-
-// export const fetchPlaylists = (user, featured = false) => dispatch => {
-//   dispatch(changePlaylist())
-//   let targetUrl = featured ? 'https://api.spotify.com/v1/browse/featured-playlists/?limit=20' : 'https://api.spotify.com/v1/me/playlists/?limit=40'
-//   customAxios.get(targetUrl)
-//   .then(res => res.data.playlists.items)
-//   .then(playlists => {
-//     axios.all(playlists.map((playlist, i, arr) => {
-//       return customAxios.get(playlist.tracks.href)
-//       .then(res => arr[i].songs = res.data.items)
-//     }))
-//     .then((res) => {
-//       dispatch(addSongs(res.reduce((total, current) => [...total, ...current], [])))
-//       dispatch(fetched(playlists))
-//       dispatch(setCurrentPlaylist(playlists[0].id))
-//     })
-//   })
-//   .catch(err => console.error('Failed to initialize ', err))
-// }
-
-
-// fetch song everytime a dom object is clicked

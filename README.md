@@ -5,7 +5,7 @@ Audiosphere is a music streaming web application that uses [Spotify Web API](htt
 When you authorize your Spotify account with Audiosphere, the application fetches your playlists from Spotify and maps each playlist on to a HTML5 canvas. Each playlist is represented as a dynamic spherical cluster of 3D objects that represent a song within that playlist. Each of these objects holds a reference to a song's audio source that plays back upon clicking the object or selecting the corresponding song from the side navigation bar. 
 
 ## Demo
-Easier done than said. Try it out [here](audiosphere.herokuapp.com)
+Easier done than said. Try it out [here](https://audiosphere.herokuapp.com)
 
 ## Instructions
 - Click on any object to playback its audio source
