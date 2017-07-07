@@ -59673,10 +59673,13 @@ var Navbar = function Navbar(_ref) {
       null,
       _react2.default.createElement(
         'a',
-        { onClick: function onClick() {
+        {
+          href: '/',
+          onClick: function onClick() {
             restartRender();
             logout();
-          } },
+          }
+        },
         'Logout'
       )
     );
@@ -59733,7 +59736,6 @@ var Navbar = function Navbar(_ref) {
   return _react2.default.createElement(
     'nav',
     { className: 'transparent', id: 'top-nav' },
-    renderDropdown(),
     _react2.default.createElement(
       'div',
       { className: 'wrapper nav-wrapper' },
@@ -59756,7 +59758,7 @@ var Navbar = function Navbar(_ref) {
           null,
           _react2.default.createElement(
             'a',
-            { style: { target: "_blank" }, href: 'https://github.com/kskkido/Audiosphere' },
+            { style: { target: '_blank;' }, href: 'https://github.com/kskkido/Audiosphere' },
             'Source Code'
           )
         )
@@ -59764,27 +59766,6 @@ var Navbar = function Navbar(_ref) {
     )
   );
 };
-
-function isLoggedIn() {
-  return userPlaylist ? getFeaturedPlaylists() : getUserPlaylists();
-}
-
-function renderDropdown() {
-  return _react2.default.createElement(
-    'ul',
-    { id: 'dropdown1', className: 'dropdown-content' },
-    _react2.default.createElement(
-      'li',
-      null,
-      'Orbital View'
-    ),
-    _react2.default.createElement(
-      'li',
-      null,
-      'Fly'
-    )
-  );
-}
 
 var mapStateToProps = function mapStateToProps(state) {
   return {
