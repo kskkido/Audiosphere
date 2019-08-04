@@ -6,16 +6,16 @@ const app = require('APP')
 
 module.exports = db => {
   const OAuth = db.define('oauths', {
-    uid: STRING,
-    provider: STRING,
+    uid: STRING(500),
+    provider: STRING(500),
 
     // OAuth v2 fields
-    accessToken: STRING,
-    refreshToken: STRING,
+    accessToken: STRING(500),
+    refreshToken: STRING(500),
 
     // OAuth v1 fields
-    token: STRING,
-    tokenSecret: STRING,
+    token: STRING(500),
+    tokenSecret: STRING(500),
 
     // The whole profile as JSON
     profileJson: JSON,
