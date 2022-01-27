@@ -4824,10 +4824,10 @@ three-orbitcontrols@^1.2.0:
   resolved "https://registry.yarnpkg.com/three-orbitcontrols/-/three-orbitcontrols-1.2.1.tgz#ce10a6b094c208b7f8fbf0d0cae3f856e2385e32"
   integrity sha512-KVsYNfFosa/MXITtbphXOnfHD1fMRMCPnMz9oHNjpFTo49bZnrobIUjFYRaIgjagUCWv4lCmPC4xdhsdi4pbnw==
 
-three@^0.85.2:
-  version "0.85.2"
-  resolved "https://registry.yarnpkg.com/three/-/three-0.85.2.tgz#8936f89c3668f7bf12f9b085ddf5dd409916ea27"
-  integrity sha1-iTb4nDZo978S+bCF3fXdQJkW6ic=
+three@^0.137.0:
+  version "0.137.0"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.137.0.tgz#0ebd6ba66637a332c31f234bcdd35aeec071a6e3"
+  integrity sha512-rzSDhia6cU35UCy6y+zEEws6vSgytfHqFMSaBvUcySgzwvDO6vETyswtSNi/+aVqJw8WLMwyT1mlQQ1T/dxxOA==
 
 threex.domevents@^1.0.1:
   version "1.0.1"
